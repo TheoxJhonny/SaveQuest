@@ -161,25 +161,19 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ChallengeCard(
-                title = "Mantén el ritmo",
-                description = "Registra 5 movimientos esta semana.",
-                currentProgress = 3,
-                targetProgress = 5,
-                xpReward = 100
-            )
+            uiState.challenges.forEach { challenge ->
 
-            Spacer(modifier = Modifier.height(12.dp))
+                ChallengeCard(
+                    title = challenge.title,
+                    description = challenge.description,
+                    currentProgress = challenge.progress,
+                    targetProgress = challenge.target,
+                    xpReward = challenge.xpReward,
+                    completed = challenge.completed
+                )
 
-            ChallengeCard(
-                title = "Pequeños pasos",
-                description = "Realiza 2 aportes a una meta.",
-                currentProgress = 1,
-                targetProgress = 2,
-                xpReward = 75
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
 
             Text(

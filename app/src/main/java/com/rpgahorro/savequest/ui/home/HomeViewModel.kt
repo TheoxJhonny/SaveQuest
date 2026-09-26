@@ -8,16 +8,19 @@ import com.rpgahorro.savequest.data.repository.UserProgressRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import com.rpgahorro.savequest.data.repository.ChallengeRepository
 
 class HomeViewModel(
     transactionRepository: TransactionRepository,
-    userProgressRepository: UserProgressRepository
+    userProgressRepository: UserProgressRepository,
+    challengeRepository: ChallengeRepository
 ) : ViewModel() {
 
     val uiState = combine(
         transactionRepository.transactions,
-        userProgressRepository.progress
-    ) { transactions, progress ->
+        userProgressRepository.progress,
+        challengeRepository.challenges
+    ) { transactions, progress, challenges ->
 
         val totalIncome = transactions
             .filter {
@@ -50,7 +53,11 @@ class HomeViewModel(
             totalXp = totalXp,
             level = level,
             currentLevelXp = currentLevelXp,
-            xpForNextLevel = 100
+            xpForNextLevel = 100,
+
+            challenges = challenges
+
+
         )
     }
         .stateIn(

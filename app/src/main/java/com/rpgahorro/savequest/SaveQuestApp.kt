@@ -77,7 +77,8 @@ fun SaveQuestApp() {
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             application.transactionRepository,
-            application.userProgressRepository
+            application.userProgressRepository,
+            application.challengeRepository
         )
     )
 

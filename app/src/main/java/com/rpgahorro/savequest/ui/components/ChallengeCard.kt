@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rpgahorro.savequest.ui.theme.SqPrimary
+import com.rpgahorro.savequest.ui.theme.SqSavings
 import com.rpgahorro.savequest.ui.theme.SqSurface
 import com.rpgahorro.savequest.ui.theme.SqSurfaceElevated
 import com.rpgahorro.savequest.ui.theme.SqTextPrimary
@@ -29,12 +30,20 @@ fun ChallengeCard(
     description: String,
     currentProgress: Int,
     targetProgress: Int,
-    xpReward: Int
+    xpReward: Int,
+    completed: Boolean = false
 ) {
 
     val progress =
-        (currentProgress.toFloat() / targetProgress.toFloat())
-            .coerceIn(0f, 1f)
+        if (targetProgress > 0) {
+            (currentProgress.toFloat() / targetProgress.toFloat())
+                .coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+
+    val progressColor =
+        if (completed) SqSavings else SqPrimary
 
     Column(
         modifier = Modifier
@@ -57,8 +66,12 @@ fun ChallengeCard(
             )
 
             Text(
-                text = "+$xpReward XP",
-                color = SqPrimary,
+                text = if (completed) {
+                    "COMPLETADO"
+                } else {
+                    "+$xpReward XP"
+                },
+                color = progressColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -80,7 +93,7 @@ fun ChallengeCard(
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(50)),
-            color = SqPrimary,
+            color = progressColor,
             trackColor = SqSurfaceElevated
         )
 
@@ -88,8 +101,17 @@ fun ChallengeCard(
 
         Text(
             text = "$currentProgress / $targetProgress",
-            color = SqTextSecondary,
-            fontSize = 12.sp
+            color = if (completed) {
+                SqSavings
+            } else {
+                SqTextSecondary
+            },
+            fontSize = 12.sp,
+            fontWeight = if (completed) {
+                FontWeight.SemiBold
+            } else {
+                FontWeight.Normal
+            }
         )
     }
 }
