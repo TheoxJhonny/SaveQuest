@@ -7,9 +7,11 @@ import com.rpgahorro.savequest.data.model.TransactionType
 import com.rpgahorro.savequest.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import com.rpgahorro.savequest.data.repository.UserProgressRepository
 
 class TransactionViewModel(
-    private val repository: TransactionRepository
+    private val repository: TransactionRepository,
+    private val userProgressRepository: UserProgressRepository
 ) : ViewModel() {
 
     val transactions: Flow<List<TransactionEntity>> =
@@ -32,6 +34,13 @@ class TransactionViewModel(
 
         viewModelScope.launch {
             repository.insert(transaction)
+
+            viewModelScope.launch {
+
+                repository.insert(transaction)
+
+                userProgressRepository.addXp(10)
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ import com.rpgahorro.savequest.ui.theme.SqTextSecondary
 fun TransactionItem(
     title: String,
     category: String,
-    amount: Int,
+    amount: Long,
     isIncome: Boolean
 ) {
 
@@ -60,6 +60,6 @@ fun TransactionItem(
     }
 }
 
-private fun formatTransactionMoney(amount: Int): String {
+private fun formatTransactionMoney(amount: Long): String {
     return "%,d".format(amount).replace(",", ".")
 }

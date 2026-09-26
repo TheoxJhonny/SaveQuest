@@ -75,9 +75,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             XpProgressCard(
-                level = 5,
-                currentXp = 820,
-                requiredXp = 1000
+                level = uiState.level,
+                currentXp = uiState.currentLevelXp,
+                requiredXp = uiState.xpForNextLevel
             )
 
             Spacer(modifier = Modifier.height(36.dp))
@@ -201,7 +201,7 @@ fun HomeScreen(
                         transaction.description
                     },
                     category = transaction.category,
-                    amount = transaction.amount.toInt(),
+                    amount = transaction.amount,
                     isIncome = transaction.type == TransactionType.INCOME.name
                 )
             }

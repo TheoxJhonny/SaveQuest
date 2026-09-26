@@ -68,13 +68,15 @@ fun SaveQuestApp() {
 
     val transactionViewModel: TransactionViewModel = viewModel(
         factory = TransactionViewModelFactory(
-            application.transactionRepository
+            application.transactionRepository,
+            application.userProgressRepository
         )
     )
 
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
-            application.transactionRepository
+            application.transactionRepository,
+            application.userProgressRepository
         )
     )
 

@@ -3,9 +3,11 @@ package com.rpgahorro.savequest.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.rpgahorro.savequest.data.repository.TransactionRepository
+import com.rpgahorro.savequest.data.repository.UserProgressRepository
 
 class HomeViewModelFactory(
-    private val repository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val userProgressRepository: UserProgressRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -14,7 +16,11 @@ class HomeViewModelFactory(
     ): T {
 
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(repository) as T
+
+            return HomeViewModel(
+                transactionRepository,
+                userProgressRepository
+            ) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel class")

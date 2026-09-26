@@ -4,40 +4,55 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rpgahorro.savequest.data.model.TransactionType
 import com.rpgahorro.savequest.data.repository.TransactionRepository
+import com.rpgahorro.savequest.data.repository.UserProgressRepository
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 class HomeViewModel(
-    repository: TransactionRepository
+    transactionRepository: TransactionRepository,
+    userProgressRepository: UserProgressRepository
 ) : ViewModel() {
 
-    val uiState = repository.transactions
-        .map { transactions ->
+    val uiState = combine(
+        transactionRepository.transactions,
+        userProgressRepository.progress
+    ) { transactions, progress ->
 
-            val totalIncome = transactions
-                .filter {
-                    it.type == TransactionType.INCOME.name
-                }
-                .sumOf {
-                    it.amount
-                }
+        val totalIncome = transactions
+            .filter {
+                it.type == TransactionType.INCOME.name
+            }
+            .sumOf {
+                it.amount
+            }
 
-            val totalExpenses = transactions
-                .filter {
-                    it.type == TransactionType.EXPENSE.name
-                }
-                .sumOf {
-                    it.amount
-                }
+        val totalExpenses = transactions
+            .filter {
+                it.type == TransactionType.EXPENSE.name
+            }
+            .sumOf {
+                it.amount
+            }
 
-            HomeUiState(
-                balance = totalIncome - totalExpenses,
-                totalIncome = totalIncome,
-                totalExpenses = totalExpenses,
-                recentTransactions = transactions.take(3)
-            )
-        }
+        val totalXp = progress?.totalXp ?: 0
+
+        val level = (totalXp / 100) + 1
+
+        val currentLevelXp = totalXp % 100
+
+        HomeUiState(
+            balance = totalIncome - totalExpenses,
+            totalIncome = totalIncome,
+            totalExpenses = totalExpenses,
+            recentTransactions = transactions.take(3),
+
+            totalXp = totalXp,
+            level = level,
+            currentLevelXp = currentLevelXp,
+            xpForNextLevel = 100
+        )
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
