@@ -7,6 +7,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.rpgahorro.savequest.data.local.SaveQuestDatabase
 import com.rpgahorro.savequest.data.repository.TransactionRepository
 import com.rpgahorro.savequest.data.repository.UserProgressRepository
+import com.rpgahorro.savequest.data.repository.ChallengeRepository
+
+
 
 
 private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -32,6 +35,53 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+private val MIGRATION_2_3 = object : Migration(2, 3) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS challenges (
+                id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                target INTEGER NOT NULL,
+                progress INTEGER NOT NULL,
+                xpReward INTEGER NOT NULL,
+                completed INTEGER NOT NULL,
+                rewardClaimed INTEGER NOT NULL,
+                PRIMARY KEY(id)
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            INSERT OR IGNORE INTO challenges (
+                id,
+                title,
+                description,
+                target,
+                progress,
+                xpReward,
+                completed,
+                rewardClaimed
+            )
+            VALUES (
+                'track_3_transactions',
+                'Mantén el ritmo',
+                'Registra 3 movimientos',
+                3,
+                0,
+                100,
+                0,
+                0
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 
 class SaveQuestApplication : Application() {
 
@@ -44,6 +94,9 @@ class SaveQuestApplication : Application() {
     lateinit var userProgressRepository: UserProgressRepository
         private set
 
+    lateinit var challengeRepository: ChallengeRepository
+        private set
+
 
     override fun onCreate() {
         super.onCreate()
@@ -54,7 +107,10 @@ class SaveQuestApplication : Application() {
             SaveQuestDatabase::class.java,
             "savequest.db"
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(
+                MIGRATION_1_2,
+                MIGRATION_2_3
+            )
             .build()
 
 
@@ -67,6 +123,10 @@ class SaveQuestApplication : Application() {
         // 3. Crear el repositorio de progreso / XP
         userProgressRepository = UserProgressRepository(
             database.userProgressDao()
+        )
+
+        challengeRepository = ChallengeRepository(
+            database.challengeDao()
         )
     }
 }

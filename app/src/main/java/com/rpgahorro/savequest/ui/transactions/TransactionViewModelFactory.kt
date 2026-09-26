@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.rpgahorro.savequest.data.repository.TransactionRepository
 import com.rpgahorro.savequest.data.repository.UserProgressRepository
+import com.rpgahorro.savequest.data.repository.ChallengeRepository
 
 class TransactionViewModelFactory(
     private val repository: TransactionRepository,
-    private val userProgressRepository: UserProgressRepository
+    private val userProgressRepository: UserProgressRepository,
+    private val challengeRepository: ChallengeRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -18,7 +20,8 @@ class TransactionViewModelFactory(
         if (modelClass.isAssignableFrom(TransactionViewModel::class.java)) {
             return TransactionViewModel(
                 repository,
-                userProgressRepository
+                userProgressRepository,
+                challengeRepository
             ) as T
         }
 

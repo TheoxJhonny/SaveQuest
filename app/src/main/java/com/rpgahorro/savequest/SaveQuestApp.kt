@@ -69,7 +69,8 @@ fun SaveQuestApp() {
     val transactionViewModel: TransactionViewModel = viewModel(
         factory = TransactionViewModelFactory(
             application.transactionRepository,
-            application.userProgressRepository
+            application.userProgressRepository,
+            application.challengeRepository
         )
     )
 
