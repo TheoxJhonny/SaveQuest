@@ -23,11 +23,22 @@ import com.rpgahorro.savequest.ui.profile.ProfileScreen
 import com.rpgahorro.savequest.ui.transactions.TransactionsScreen
 import com.rpgahorro.savequest.ui.theme.SqBackground
 import com.rpgahorro.savequest.ui.theme.SqPrimary
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.rpgahorro.savequest.ui.components.AddMovementSheet
+import com.rpgahorro.savequest.data.model.TransactionType
+import com.rpgahorro.savequest.ui.transactions.AddTransactionScreen
 
 @Composable
 fun SaveQuestApp() {
 
     val navController = rememberNavController()
+
+    var showAddMovementSheet by remember {
+        mutableStateOf(false)
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -35,45 +46,62 @@ fun SaveQuestApp() {
         ?.destination
         ?.route
 
+    val showMainNavigation = currentRoute in listOf(
+        SaveQuestDestination.Home.route,
+        SaveQuestDestination.Transactions.route,
+        SaveQuestDestination.Goals.route,
+        SaveQuestDestination.Map.route,
+        SaveQuestDestination.Profile.route
+    )
+
     Scaffold(
         containerColor = SqBackground,
 
+
         bottomBar = {
 
-            SaveQuestBottomBar(
-                currentRoute = currentRoute,
+            if (showMainNavigation) {
 
-                onNavigate = { destination ->
+                SaveQuestBottomBar(
+                    currentRoute = currentRoute,
 
-                    navController.navigate(destination.route) {
+                    onNavigate = { destination ->
 
-                        popUpTo(SaveQuestDestination.Home.route) {
-                            saveState = true
+                        navController.navigate(destination.route) {
+
+                            popUpTo(SaveQuestDestination.Home.route) {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+                            restoreState = true
                         }
-
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         },
 
         floatingActionButton = {
 
-            FloatingActionButton(
-                onClick = {
-                    // Lo implementaremos después.
-                },
-                containerColor = SqPrimary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
+            if (showMainNavigation) {
 
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = "Registrar movimiento"
-                )
+                FloatingActionButton(
+                    onClick = {
+                        showAddMovementSheet = true
+                    },
+                    containerColor = SqPrimary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = "Registrar movimiento"
+                    )
+                }
             }
         }
+
+
 
     ) { innerPadding ->
 
@@ -101,7 +129,58 @@ fun SaveQuestApp() {
 
             composable(SaveQuestDestination.Profile.route) {
                 ProfileScreen()
+
+
+            }
+
+            composable(SaveQuestDestination.AddExpense.route) {
+
+                AddTransactionScreen(
+                    type = TransactionType.EXPENSE,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(SaveQuestDestination.AddIncome.route) {
+
+                AddTransactionScreen(
+                    type = TransactionType.INCOME,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
+    }
+
+    if (showAddMovementSheet) {
+
+        AddMovementSheet(
+
+            onDismiss = {
+                showAddMovementSheet = false
+            },
+
+            onExpenseClick = {
+                showAddMovementSheet = false
+
+                navController.navigate(
+                    SaveQuestDestination.AddExpense.route
+                )
+            },
+
+            onIncomeClick = {
+                showAddMovementSheet = false
+
+                navController.navigate(
+                    SaveQuestDestination.AddIncome.route
+                )
+            },
+            onGoalContributionClick = {
+                showAddMovementSheet = false
+            }
+        )
     }
 }
