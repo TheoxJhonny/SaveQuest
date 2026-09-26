@@ -35,6 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rpgahorro.savequest.ui.transactions.TransactionViewModel
 import com.rpgahorro.savequest.ui.transactions.TransactionViewModelFactory
 import androidx.compose.runtime.collectAsState
+import com.rpgahorro.savequest.ui.home.HomeViewModel
+import com.rpgahorro.savequest.ui.home.HomeViewModelFactory
 
 @Composable
 fun SaveQuestApp() {
@@ -69,6 +71,14 @@ fun SaveQuestApp() {
             application.transactionRepository
         )
     )
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            application.transactionRepository
+        )
+    )
+
+    val homeUiState by homeViewModel.uiState.collectAsState()
 
     val transactions by transactionViewModel.transactions.collectAsState(
         initial = emptyList()
@@ -132,7 +142,10 @@ fun SaveQuestApp() {
         ) {
 
             composable(SaveQuestDestination.Home.route) {
-                HomeScreen()
+
+                HomeScreen(
+                    uiState = homeUiState
+                )
             }
 
             composable(SaveQuestDestination.Transactions.route) {

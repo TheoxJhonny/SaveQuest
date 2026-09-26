@@ -2,6 +2,7 @@ package com.rpgahorro.savequest.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -21,10 +22,16 @@ import com.rpgahorro.savequest.ui.theme.SqPrimary
 import com.rpgahorro.savequest.ui.theme.SqTextSecondary
 import com.rpgahorro.savequest.ui.components.ChallengeCard
 import com.rpgahorro.savequest.ui.components.TransactionItem
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import com.rpgahorro.savequest.ui.theme.SqExpense
+import com.rpgahorro.savequest.ui.theme.SqSavings
+import com.rpgahorro.savequest.data.model.TransactionType
 
 @Composable
-fun HomeScreen() {
-
+fun HomeScreen(
+    uiState: HomeUiState
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -86,11 +93,53 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "$705.000",
+                text = "$${formatMoney(uiState.balance)}",
                 fontSize = 38.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Column {
+
+                    Text(
+                        text = "INGRESOS",
+                        color = SqTextSecondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
+                        text = "+$${formatMoney(uiState.totalIncome)}",
+                        color = SqSavings,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Column {
+
+                    Text(
+                        text = "GASTOS",
+                        color = SqTextSecondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
+                        text = "-$${formatMoney(uiState.totalExpenses)}",
+                        color = SqExpense,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(36.dp))
 
@@ -143,28 +192,27 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            TransactionItem(
-                title = "Supermercado",
-                category = "Alimentación",
-                amount = 28990,
-                isIncome = false
-            )
+            uiState.recentTransactions.forEach { transaction ->
 
-            TransactionItem(
-                title = "Aporte Notebook",
-                category = "Ahorro",
-                amount = 30000,
-                isIncome = true
-            )
-
-            TransactionItem(
-                title = "Café",
-                category = "Alimentación",
-                amount = 3500,
-                isIncome = false
-            )
+                TransactionItem(
+                    title = if (transaction.description.isBlank()) {
+                        transaction.category
+                    } else {
+                        transaction.description
+                    },
+                    category = transaction.category,
+                    amount = transaction.amount.toInt(),
+                    isIncome = transaction.type == TransactionType.INCOME.name
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
+}
+
+private fun formatMoney(amount: Long): String {
+    return "%,d"
+        .format(amount)
+        .replace(',', '.')
 }
