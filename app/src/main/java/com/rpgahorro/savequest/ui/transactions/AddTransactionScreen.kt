@@ -41,7 +41,12 @@ import androidx.compose.ui.Alignment
 @Composable
 fun AddTransactionScreen(
     type: TransactionType,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSave: (
+        amount: Long,
+        category: String,
+        description: String
+    ) -> Unit
 ) {
 
     var amount by remember { mutableStateOf("") }
@@ -154,7 +159,21 @@ fun AddTransactionScreen(
 
         Button(
             onClick = {
-                // Guardaremos realmente más adelante.
+
+                val parsedAmount = amount.toLongOrNull()
+
+                if (
+                    parsedAmount != null &&
+                    parsedAmount > 0 &&
+                    category.isNotBlank()
+                ) {
+
+                    onSave(
+                        parsedAmount,
+                        category.trim(),
+                        description.trim()
+                    )
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

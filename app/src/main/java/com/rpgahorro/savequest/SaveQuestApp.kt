@@ -30,6 +30,11 @@ import androidx.compose.runtime.setValue
 import com.rpgahorro.savequest.ui.components.AddMovementSheet
 import com.rpgahorro.savequest.data.model.TransactionType
 import com.rpgahorro.savequest.ui.transactions.AddTransactionScreen
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.rpgahorro.savequest.ui.transactions.TransactionViewModel
+import com.rpgahorro.savequest.ui.transactions.TransactionViewModelFactory
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun SaveQuestApp() {
@@ -52,6 +57,21 @@ fun SaveQuestApp() {
         SaveQuestDestination.Goals.route,
         SaveQuestDestination.Map.route,
         SaveQuestDestination.Profile.route
+    )
+
+    val context = LocalContext.current
+
+    val application =
+        context.applicationContext as SaveQuestApplication
+
+    val transactionViewModel: TransactionViewModel = viewModel(
+        factory = TransactionViewModelFactory(
+            application.transactionRepository
+        )
+    )
+
+    val transactions by transactionViewModel.transactions.collectAsState(
+        initial = emptyList()
     )
 
     Scaffold(
@@ -116,7 +136,10 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Transactions.route) {
-                TransactionsScreen()
+
+                TransactionsScreen(
+                    transactions = transactions
+                )
             }
 
             composable(SaveQuestDestination.Goals.route) {
@@ -137,7 +160,20 @@ fun SaveQuestApp() {
 
                 AddTransactionScreen(
                     type = TransactionType.EXPENSE,
+
                     onBack = {
+                        navController.popBackStack()
+                    },
+
+                    onSave = { amount, category, description ->
+
+                        transactionViewModel.addTransaction(
+                            type = TransactionType.EXPENSE,
+                            amount = amount,
+                            category = category,
+                            description = description
+                        )
+
                         navController.popBackStack()
                     }
                 )
@@ -147,7 +183,20 @@ fun SaveQuestApp() {
 
                 AddTransactionScreen(
                     type = TransactionType.INCOME,
+
                     onBack = {
+                        navController.popBackStack()
+                    },
+
+                    onSave = { amount, category, description ->
+
+                        transactionViewModel.addTransaction(
+                            type = TransactionType.INCOME,
+                            amount = amount,
+                            category = category,
+                            description = description
+                        )
+
                         navController.popBackStack()
                     }
                 )
