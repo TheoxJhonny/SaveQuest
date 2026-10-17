@@ -1,90 +1,40 @@
 package com.rpgahorro.savequest.ui.transactions
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rpgahorro.savequest.data.local.entity.TransactionEntity
 import com.rpgahorro.savequest.data.model.TransactionType
 import com.rpgahorro.savequest.data.repository.TransactionRepository
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import com.rpgahorro.savequest.data.repository.UserProgressRepository
-import com.rpgahorro.savequest.data.repository.ChallengeRepository
-import kotlinx.coroutines.flow.first
 
-class TransactionViewModel(
-    private val repository: TransactionRepository,
-    private val userProgressRepository: UserProgressRepository,
-    private val challengeRepository: ChallengeRepository
-) : ViewModel() {
+data class TransactionSaveState(val saving: Boolean = false, val saved: Boolean = false, val error: String? = null)
 
-    val transactions: Flow<List<TransactionEntity>> =
-        repository.transactions
+class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
+    val transactions = repository.transactions
+    var saveState by mutableStateOf(TransactionSaveState())
+        private set
 
-    fun addTransaction(
-        type: TransactionType,
-        amount: Long,
-        category: String,
-        description: String
-    ) {
+    fun clearStatus() {
+        if (!saveState.saving) saveState = TransactionSaveState()
+    }
 
-        val transaction = TransactionEntity(
-            type = type.name,
-            amount = amount,
-            category = category,
-            description = description,
-            date = System.currentTimeMillis()
-        )
-
+    fun addTransaction(type: TransactionType, amount: Long, category: String, description: String) {
+        if (saveState.saving || saveState.saved) return
+        saveState = TransactionSaveState(saving = true)
         viewModelScope.launch {
-
-            // 1. Guardar el movimiento UNA sola vez
-            repository.insert(transaction)
-
-            // 2. Dar XP base por registrar el movimiento
-            userProgressRepository.addXp(10)
-
-            // 3. Buscar el desafío "Mantén el ritmo"
-            val challenge = challengeRepository
-                .challenges
-                .first()
-                .firstOrNull {
-                    it.id == "track_3_transactions"
-                }
-
-            if (
-                challenge != null &&
-                !challenge.completed
-            ) {
-
-                val newProgress =
-                    (challenge.progress + 1)
-                        .coerceAtMost(challenge.target)
-
-                challengeRepository.updateProgress(
-                    challengeId = challenge.id,
-                    progress = newProgress
-                )
-
-                // 4. Comprobar si se completó
-                if (newProgress >= challenge.target) {
-
-                    challengeRepository.completeChallenge(
-                        challengeId = challenge.id
-                    )
-
-                    // 5. Entregar recompensa una sola vez
-                    if (!challenge.rewardClaimed) {
-
-                        userProgressRepository.addXp(
-                            challenge.xpReward
-                        )
-
-                        challengeRepository.markRewardClaimed(
-                            challengeId = challenge.id
-                        )
-                    }
-                }
+            try {
+                repository.record(type, amount, category, description)
+                saveState = TransactionSaveState(saved = true)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalArgumentException) {
+                saveState = TransactionSaveState(error = e.message)
+            } catch (_: Exception) {
+                saveState = TransactionSaveState(error = "No se pudo guardar el movimiento. Inténtalo nuevamente.")
             }
         }
     }
-    }
+}

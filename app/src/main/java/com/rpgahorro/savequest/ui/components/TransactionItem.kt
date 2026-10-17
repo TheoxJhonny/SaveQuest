@@ -31,7 +31,7 @@ fun TransactionItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
-        Column {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
 
             Text(
                 text = title,

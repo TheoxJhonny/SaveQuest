@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChallengeDao {
 
+    @Query("SELECT * FROM challenges WHERE id = :id")
+    suspend fun getById(id: String): ChallengeEntity?
+
+
     @Query("SELECT * FROM challenges")
     fun observeChallenges(): Flow<List<ChallengeEntity>>
 

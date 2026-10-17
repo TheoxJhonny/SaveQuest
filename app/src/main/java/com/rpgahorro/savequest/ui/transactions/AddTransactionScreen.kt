@@ -1,195 +1,76 @@
 package com.rpgahorro.savequest.ui.transactions
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rpgahorro.savequest.data.model.TransactionType
-import com.rpgahorro.savequest.ui.theme.SqBackground
-import com.rpgahorro.savequest.ui.theme.SqExpense
-import com.rpgahorro.savequest.ui.theme.SqSavings
-import com.rpgahorro.savequest.ui.theme.SqTextSecondary
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.RemoveCircle
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.rpgahorro.savequest.data.model.TransactionType
+import com.rpgahorro.savequest.ui.components.*
+import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
 fun AddTransactionScreen(
     type: TransactionType,
     onBack: () -> Unit,
-    onSave: (
-        amount: Long,
-        category: String,
-        description: String
-    ) -> Unit
+    onSave: (Long, String, String) -> Unit,
+    saveState: TransactionSaveState = TransactionSaveState(),
+    onSaved: () -> Unit = {}
 ) {
+    var amount by rememberSaveable(type) { mutableStateOf("") }
+    var category by rememberSaveable(type) { mutableStateOf("") }
+    var description by rememberSaveable(type) { mutableStateOf("") }
+    var submitted by rememberSaveable(type) { mutableStateOf(false) }
+    val parsed = amount.toLongOrNull()
+    val invalidAmount = amount.isEmpty() || amount.any { it !in '0'..'9' } || parsed == null || parsed <= 0
+    val busy = saveState.saving || saveState.saved
+    val expense = type == TransactionType.EXPENSE
+    val accent = if (expense) SqExpense else SqSavings
 
-    var amount by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    LaunchedEffect(saveState.saved) { if (saveState.saved) onSaved() }
+    BackHandler(enabled = busy) { /* Esperar confirmación antes de abandonar el formulario. */ }
 
-    val isExpense = type == TransactionType.EXPENSE
-
-    val accentColor =
-        if (isExpense) SqExpense else SqSavings
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Volver",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
+    Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onBack, enabled = !busy) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Volver") }
+            QuestLabel("REGISTRA TU AVANCE")
         }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    val title =
-        if (isExpense) "Registrar gasto" else "Registrar ingreso"
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SqBackground)
-            .statusBarsPadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        Text(
-            text = title,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = if (isExpense)
-                "¿En qué utilizaste tu dinero?"
-            else
-                "Registra el dinero que recibiste.",
-            color = SqTextSecondary,
-            fontSize = 14.sp
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = amount,
-            onValueChange = { newValue ->
-                if (newValue.all { it.isDigit() }) {
-                    amount = newValue
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Monto")
-            },
-            prefix = {
-                Text("$")
-            },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = category,
-            onValueChange = {
-                category = it
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Categoría")
-            },
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = {
-                description = it
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Descripción")
-            }
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Button(
-            onClick = {
-
-                val parsedAmount = amount.toLongOrNull()
-
-                if (
-                    parsedAmount != null &&
-                    parsedAmount > 0 &&
-                    category.isNotBlank()
-                ) {
-
-                    onSave(
-                        parsedAmount,
-                        category.trim(),
-                        description.trim()
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = accentColor
-            )
-        ) {
-
-            Text(
-                text = if (isExpense)
-                    "Registrar gasto"
-                else
-                    "Registrar ingreso",
-                fontWeight = FontWeight.Bold
-            )
+        Text(if (expense) "Registrar gasto" else "Registrar ingreso", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
+        QuestPanel {
+            Icon(if (expense) Icons.Outlined.RemoveCircle else Icons.Outlined.AddCircle, null, Modifier.size(36.dp), tint = accent)
+            Text(if (expense) "¿En qué utilizaste tu dinero?" else "Registra el dinero que recibiste.", color = SqTextSecondary)
+            OutlinedTextField(amount, { amount = it }, Modifier.fillMaxWidth(), enabled = !busy,
+                label = { Text("Monto en pesos") }, prefix = { Text("$") }, singleLine = true,
+                isError = submitted && invalidAmount,
+                supportingText = { Text(if (submitted && invalidAmount) "Ingresa un monto válido mayor que cero." else "Sin puntos ni comas") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next))
+            OutlinedTextField(category, { category = it }, Modifier.fillMaxWidth(), enabled = !busy,
+                label = { Text("Categoría") }, singleLine = true,
+                isError = submitted && category.isBlank(),
+                supportingText = { if (submitted && category.isBlank()) Text("Escribe una categoría.") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
+            OutlinedTextField(description, { description = it }, Modifier.fillMaxWidth(), enabled = !busy,
+                label = { Text("Descripción (opcional)") }, minLines = 2, maxLines = 4)
+            saveState.error?.let { Text(it, color = SqExpense) }
+            QuestButton(if (busy) "Guardando…" else "Guardar movimiento", {
+                submitted = true
+                if (!invalidAmount && category.isNotBlank()) onSave(parsed!!, category.trim(), description.trim())
+            }, enabled = !busy)
         }
+        Text("★ +10 XP por registrar tu movimiento", color = SqXp)
+        Spacer(Modifier.height(16.dp))
     }
 }

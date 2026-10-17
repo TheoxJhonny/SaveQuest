@@ -117,12 +117,13 @@ class SaveQuestApplication : Application() {
                 MIGRATION_2_3,
                 MIGRATION_3_4
             )
+            .addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults)
             .build()
 
 
         // 2. Crear el repositorio de movimientos
         transactionRepository = TransactionRepository(
-            database.transactionDao()
+            database
         )
 
 
