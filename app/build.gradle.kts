@@ -39,6 +39,7 @@ android {
 }
 
 dependencies {
+    implementation("org.maplibre.gl:android-sdk:13.7.1")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

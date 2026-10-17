@@ -21,7 +21,7 @@ class MovementFormTest {
         var calls = 0
         restoration.setContent {
             SaveQuestTheme { Surface {
-                AddTransactionScreen(TransactionType.EXPENSE, {}, { _, _, _, _ -> calls++ }, accounts = accounts)
+                AddTransactionScreen(TransactionType.EXPENSE, {}, { _, _, _, _, _, _ -> calls++ }, accounts = accounts)
             } }
         }
         compose.onNodeWithText("Guardar movimiento").performScrollTo().performClick()
@@ -42,7 +42,7 @@ class MovementFormTest {
         var success = 0
         compose.setContent {
             SaveQuestTheme { Surface {
-                AddTransactionScreen(TransactionType.INCOME, {}, { _, _, _, _ -> calls++; state = TransactionSaveState(saving = true) },
+                AddTransactionScreen(TransactionType.INCOME, {}, { _, _, _, _, _, _ -> calls++; state = TransactionSaveState(saving = true) },
                     accounts = accounts, saveState = state, onSaved = { success++ })
             } }
         }

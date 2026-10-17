@@ -21,12 +21,12 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
         if (!saveState.saving) saveState = TransactionSaveState()
     }
 
-    fun addTransaction(type: TransactionType, amount: Long, category: String, description: String, accountId: Long = 1) {
+    fun addTransaction(type: TransactionType, amount: Long, category: String, description: String, accountId: Long = 1, latitude: Double? = null, longitude: Double? = null) {
         if (saveState.saving || saveState.saved) return
         saveState = TransactionSaveState(saving = true)
         viewModelScope.launch {
             try {
-                repository.record(type, amount, category, description, accountId)
+                repository.record(type, amount, category, description, accountId, latitude, longitude)
                 saveState = TransactionSaveState(saved = true)
             } catch (e: CancellationException) {
                 throw e

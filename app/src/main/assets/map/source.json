@@ -1,0 +1,10 @@
+{
+  "source": "https://www.openstreetmap.org/copyright",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "bbox": "-33.65,-70.85,-33.25,-70.45",
+  "downloadedAt": "2026-10-17T15:34:03.195529+00:00",
+  "osmTimestamp": "2026-10-17T15:32:31Z",
+  "features": 117853,
+  "query": "[out:json][timeout:180];(\nway[highway~\"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian)(_link)?$\"](-33.65,-70.85,-33.25,-70.45);\nway[waterway~\"^(river|canal)$\"](-33.65,-70.85,-33.25,-70.45);\nway[leisure=park](-33.65,-70.85,-33.25,-70.45);\n);out geom;"
+}

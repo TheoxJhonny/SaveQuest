@@ -1,0 +1,16 @@
+{
+  "version": 8,
+  "name": "SaveQuest Santiago offline",
+  "sources": {
+    "santiago": {"type": "geojson", "data": "asset://map/santiago.geojson", "attribution": "© OpenStreetMap contributors"},
+    "movements": {"type": "geojson", "data": {"type": "FeatureCollection", "features": []}}
+  },
+  "layers": [
+    {"id": "background", "type": "background", "paint": {"background-color": "#10131E"}},
+    {"id": "parks", "type": "fill", "source": "santiago", "filter": ["==", "kind", "park"], "paint": {"fill-color": "#174B43", "fill-opacity": 0.8}},
+    {"id": "water", "type": "line", "source": "santiago", "filter": ["==", "kind", "water"], "paint": {"line-color": "#3A8AA3", "line-width": 3}},
+    {"id": "roads", "type": "line", "source": "santiago", "filter": ["==", "kind", "road"], "paint": {"line-color": "#55516F", "line-width": {"stops": [[10,0.6],[14,2],[18,7]]}}},
+    {"id": "main-roads", "type": "line", "source": "santiago", "filter": ["in", "class", "motorway", "trunk", "primary", "secondary"], "paint": {"line-color": "#A494DA", "line-width": {"stops": [[10,1],[14,3],[18,9]]}}},
+    {"id": "movements", "type": "circle", "source": "movements", "paint": {"circle-radius": 8,"circle-stroke-width": 2,"circle-stroke-color": "#FFFFFF", "circle-color": ["case", ["get", "expense"], "#FF7F92", "#43DBAE"]}}
+  ]
+}

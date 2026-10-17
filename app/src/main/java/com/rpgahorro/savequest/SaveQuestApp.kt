@@ -176,7 +176,7 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Map.route) {
-                MapScreen()
+                MapScreen(transactions)
             }
 
             composable(SaveQuestDestination.Profile.route) {
@@ -200,8 +200,8 @@ fun SaveQuestApp() {
                         accounts = accounts,
                         onBack = { transactionViewModel.clearStatus(); navController.popBackStack() },
                         onSaved = { transactionViewModel.clearStatus(); navController.popBackStack() },
-                        onSave = { amount, category, description, accountId ->
-                            transactionViewModel.addTransaction(type, amount, category, description, accountId)
+                        onSave = { amount, category, description, accountId, latitude, longitude ->
+                            transactionViewModel.addTransaction(type, amount, category, description, accountId, latitude, longitude)
                         }
                     )
                 }

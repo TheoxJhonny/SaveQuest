@@ -27,11 +27,13 @@ import com.rpgahorro.savequest.ui.theme.*
 fun AddTransactionScreen(
     type: TransactionType,
     onBack: () -> Unit,
-    onSave: (Long, String, String, Long) -> Unit,
+    onSave: (Long, String, String, Long, Double?, Double?) -> Unit,
     accounts: List<AccountBalance>,
     saveState: TransactionSaveState = TransactionSaveState(),
     onSaved: () -> Unit = {}
 ) {
+    var latitude by rememberSaveable(type) { mutableStateOf<Double?>(null) }
+    var longitude by rememberSaveable(type) { mutableStateOf<Double?>(null) }
     var accountId by rememberSaveable(type) { mutableLongStateOf(1L) }
     var amount by rememberSaveable(type) { mutableStateOf("") }
     var category by rememberSaveable(type) { mutableStateOf("") }
@@ -69,10 +71,11 @@ fun AddTransactionScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
             OutlinedTextField(description, { description = it }, Modifier.fillMaxWidth(), enabled = !busy,
                 label = { Text("Descripción (opcional)") }, minLines = 2, maxLines = 4)
+            com.rpgahorro.savequest.ui.map.MovementLocation(latitude, longitude, !busy) { lat, lon -> latitude = lat; longitude = lon }
             saveState.error?.let { Text(it, color = SqExpense) }
             QuestButton(if (busy) "Guardando…" else "Guardar movimiento", {
                 submitted = true
-                if (!invalidAmount && category.isNotBlank()) onSave(parsed!!, category.trim(), description.trim(), accountId)
+                if (!invalidAmount && category.isNotBlank()) onSave(parsed!!, category.trim(), description.trim(), accountId, latitude, longitude)
             }, enabled = !busy && accounts.any { it.account.id == accountId })
         }
         Text("★ +10 XP por registrar tu movimiento", color = SqXp)
