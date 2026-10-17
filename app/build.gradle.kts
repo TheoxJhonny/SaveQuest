@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -58,4 +59,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     ksp("androidx.room:room-compiler:2.8.4")
+}
+ksp {
+    arg("room.schemaLocation", file("schemas").path)
 }

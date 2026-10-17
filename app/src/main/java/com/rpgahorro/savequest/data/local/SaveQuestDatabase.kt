@@ -21,7 +21,7 @@ import com.rpgahorro.savequest.data.local.entity.ChallengeEntity
         GoalContributionEntity::class
     ],
     version = 4,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class SaveQuestDatabase : RoomDatabase() {
 
