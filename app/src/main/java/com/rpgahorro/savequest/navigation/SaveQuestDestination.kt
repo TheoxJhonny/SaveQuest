@@ -3,7 +3,9 @@ package com.rpgahorro.savequest.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Castle
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,13 +21,13 @@ sealed class SaveQuestDestination(
     data object Home : SaveQuestDestination(
         route = "home",
         label = "Inicio",
-        icon = Icons.Outlined.Home
+        icon = Icons.Outlined.Castle
     )
 
     data object Transactions : SaveQuestDestination(
         route = "transactions",
         label = "Movimientos",
-        icon = Icons.Outlined.AccountBalanceWallet
+        icon = Icons.AutoMirrored.Outlined.MenuBook
     )
 
     data object Goals : SaveQuestDestination(
@@ -43,7 +45,7 @@ sealed class SaveQuestDestination(
     data object Profile : SaveQuestDestination(
         route = "profile",
         label = "Perfil",
-        icon = Icons.Outlined.Person
+        icon = Icons.Outlined.Shield
     )
 
     data object AddExpense : SaveQuestDestination(

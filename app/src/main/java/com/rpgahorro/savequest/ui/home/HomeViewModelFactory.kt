@@ -9,7 +9,8 @@ import com.rpgahorro.savequest.data.repository.ChallengeRepository
 class HomeViewModelFactory(
     private val transactionRepository: TransactionRepository,
     private val userProgressRepository: UserProgressRepository,
-    private val challengeRepository: ChallengeRepository
+    private val challengeRepository: ChallengeRepository,
+    private val savingGoalRepository: com.rpgahorro.savequest.data.repository.SavingGoalRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -22,7 +23,8 @@ class HomeViewModelFactory(
             return HomeViewModel(
                 transactionRepository,
                 userProgressRepository,
-                challengeRepository
+                challengeRepository,
+                savingGoalRepository
             ) as T
         }
 

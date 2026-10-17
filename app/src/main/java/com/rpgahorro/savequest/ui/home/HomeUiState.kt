@@ -5,6 +5,9 @@ import com.rpgahorro.savequest.data.local.entity.ChallengeEntity
 
 data class HomeUiState(
     val balance: Long = 0,
+    val reserved: Long = 0,
+    val available: Long = 0,
+    val goals: List<com.rpgahorro.savequest.data.local.entity.SavingGoalWithContributions> = emptyList(),
     val totalIncome: Long = 0,
     val totalExpenses: Long = 0,
     val recentTransactions: List<TransactionEntity> = emptyList(),

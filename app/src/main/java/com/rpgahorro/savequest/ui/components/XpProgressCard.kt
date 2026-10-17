@@ -1,74 +1,43 @@
 package com.rpgahorro.savequest.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rpgahorro.savequest.ui.theme.SqSurface
-import com.rpgahorro.savequest.ui.theme.SqTextSecondary
-import com.rpgahorro.savequest.ui.theme.SqXp
+import androidx.compose.ui.unit.*
+import com.rpgahorro.savequest.ui.theme.*
+import kotlinx.coroutines.delay
 
 @Composable
-fun XpProgressCard(
-    level: Int,
-    currentXp: Int,
-    requiredXp: Int
-) {
-
-    val progress =
-        (currentXp.toFloat() / requiredXp.toFloat())
-            .coerceIn(0f, 1f)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(SqSurface)
-            .padding(20.dp)
-    ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Text(
-                text = "NIVEL $level",
-                color = SqXp,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-
-            Text(
-                text = "$currentXp / $requiredXp XP",
-                color = SqTextSecondary,
-                fontSize = 13.sp
-            )
+fun XpProgressCard(level: Int, currentXp: Int, requiredXp: Int) {
+    var previousLevel by remember { mutableIntStateOf(level) }
+    var celebrate by remember { mutableStateOf(false) }
+    LaunchedEffect(level) {
+        if (level > previousLevel) {
+            celebrate = true
+            delay(1600)
+            celebrate = false
         }
-
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 14.dp)
-                .height(8.dp)
-                .clip(RoundedCornerShape(50)),
-            color = SqXp,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        previousLevel = level
+    }
+    val tint by animateColorAsState(if (celebrate) SqTextPrimary else SqXp, tween(500), label = "Subida de nivel")
+    QuestPanel {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(66.dp), contentAlignment = Alignment.Center) {
+                QuestIllustration(QuestArt.Shield, Modifier.fillMaxSize())
+                Text("$level", modifier = Modifier.padding(top = 10.dp), color = tint, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(if (celebrate) "¡NIVEL $level!" else "NIVEL $level", color = tint, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("$currentXp / $requiredXp XP", color = SqTextSecondary, fontSize = 11.sp)
+                }
+                QuestProgress(if (requiredXp > 0) currentXp.toFloat() / requiredXp else 0f, SqXp)
+            }
+        }
     }
 }

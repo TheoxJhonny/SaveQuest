@@ -13,14 +13,16 @@ import com.rpgahorro.savequest.data.repository.ChallengeRepository
 class HomeViewModel(
     transactionRepository: TransactionRepository,
     userProgressRepository: UserProgressRepository,
-    challengeRepository: ChallengeRepository
+    challengeRepository: ChallengeRepository,
+    savingGoalRepository: com.rpgahorro.savequest.data.repository.SavingGoalRepository
 ) : ViewModel() {
 
     val uiState = combine(
         transactionRepository.transactions,
         userProgressRepository.progress,
-        challengeRepository.challenges
-    ) { transactions, progress, challenges ->
+        challengeRepository.challenges,
+        savingGoalRepository.goals
+    ) { transactions, progress, challenges, goals ->
 
         val totalIncome = transactions
             .filter {
@@ -46,6 +48,9 @@ class HomeViewModel(
 
         HomeUiState(
             balance = totalIncome - totalExpenses,
+            reserved = goals.sumOf { it.savedAmount },
+            available = totalIncome - totalExpenses - goals.sumOf { it.savedAmount },
+            goals = goals,
             totalIncome = totalIncome,
             totalExpenses = totalExpenses,
             recentTransactions = transactions.take(3),

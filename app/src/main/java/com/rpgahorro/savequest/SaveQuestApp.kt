@@ -17,6 +17,8 @@ import androidx.navigation.compose.rememberNavController
 import com.rpgahorro.savequest.navigation.SaveQuestDestination
 import com.rpgahorro.savequest.ui.components.SaveQuestBottomBar
 import com.rpgahorro.savequest.ui.goals.GoalsScreen
+import com.rpgahorro.savequest.ui.goals.GoalsViewModel
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.rpgahorro.savequest.ui.home.HomeScreen
 import com.rpgahorro.savequest.ui.map.MapScreen
 import com.rpgahorro.savequest.ui.profile.ProfileScreen
@@ -74,11 +76,15 @@ fun SaveQuestApp() {
         )
     )
 
+    val goalsViewModel: GoalsViewModel = viewModel(factory = GoalsViewModel.Factory(application.savingGoalRepository))
+    var pendingGoalId by rememberSaveable { mutableStateOf<Long?>(null) }
+
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             application.transactionRepository,
             application.userProgressRepository,
-            application.challengeRepository
+            application.challengeRepository,
+            application.savingGoalRepository
         )
     )
 
@@ -148,7 +154,12 @@ fun SaveQuestApp() {
             composable(SaveQuestDestination.Home.route) {
 
                 HomeScreen(
-                    uiState = homeUiState
+                    uiState = homeUiState,
+                    onGoalsClick = { navController.navigate(SaveQuestDestination.Goals.route) { launchSingleTop = true } },
+                    onContribute = { id ->
+                        pendingGoalId = id
+                        navController.navigate(SaveQuestDestination.Goals.route) { launchSingleTop = true }
+                    }
                 )
             }
 
@@ -160,7 +171,7 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Goals.route) {
-                GoalsScreen()
+                GoalsScreen(goalsViewModel, homeUiState.available, pendingGoalId, { pendingGoalId = null })
             }
 
             composable(SaveQuestDestination.Map.route) {
@@ -168,7 +179,7 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(homeUiState)
 
 
             }
@@ -246,6 +257,7 @@ fun SaveQuestApp() {
             },
             onGoalContributionClick = {
                 showAddMovementSheet = false
+                navController.navigate(SaveQuestDestination.Goals.route) { launchSingleTop = true }
             }
         )
     }

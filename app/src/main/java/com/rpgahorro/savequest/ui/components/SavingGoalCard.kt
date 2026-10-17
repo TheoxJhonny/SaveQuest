@@ -1,114 +1,31 @@
 package com.rpgahorro.savequest.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rpgahorro.savequest.ui.theme.SqPrimary
-import com.rpgahorro.savequest.ui.theme.SqSavings
-import com.rpgahorro.savequest.ui.theme.SqSurface
-import com.rpgahorro.savequest.ui.theme.SqSurfaceElevated
-import com.rpgahorro.savequest.ui.theme.SqTextPrimary
-import com.rpgahorro.savequest.ui.theme.SqTextSecondary
+import androidx.compose.ui.unit.*
+import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
-fun SavingGoalCard(
-    name: String,
-    currentAmount: Int,
-    targetAmount: Int
-) {
-
-    val progress =
-        (currentAmount.toFloat() / targetAmount.toFloat())
-            .coerceIn(0f, 1f)
-
-    val percentage = (progress * 100).toInt()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(SqSurface)
-            .padding(20.dp)
-    ) {
-
-        Text(
-            text = "META PRINCIPAL",
-            color = SqPrimary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Text(
-                text = name,
-                color = SqTextPrimary,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "$percentage%",
-                color = SqSavings,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+fun SavingGoalCard(name: String, currentAmount: Long, targetAmount: Long,
+                   onContribute: () -> Unit, heading: String = "META PRINCIPAL") {
+    val progress = if (targetAmount > 0) (currentAmount.toFloat() / targetAmount).coerceIn(0f, 1f) else 0f
+    QuestPanel {
+        QuestLabel(heading)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            QuestIllustration(QuestArt.Treasure, Modifier.size(68.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(name, Modifier.weight(1f), color = SqTextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp)
+                    Text("${(progress * 100).toInt()}%", color = SqSavings, fontWeight = FontWeight.Bold)
+                }
+                QuestProgress(progress, SqSavings)
+                Text("${money(currentAmount)} de ${money(targetAmount)}", color = SqTextSecondary, fontSize = 12.sp)
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(50)),
-            color = SqSavings,
-            trackColor = SqSurfaceElevated
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Text(
-                text = "$${formatMoney(currentAmount)} ahorrados",
-                color = SqTextSecondary,
-                fontSize = 13.sp
-            )
-
-            Text(
-                text = "Meta: $${formatMoney(targetAmount)}",
-                color = SqTextSecondary,
-                fontSize = 13.sp
-            )
-        }
+        QuestButton(if (progress >= 1f) "Meta completada" else "+  Aportar a meta", onContribute, progress < 1f)
     }
-}
-
-private fun formatMoney(amount: Int): String {
-    return "%,d".format(amount).replace(",", ".")
 }
