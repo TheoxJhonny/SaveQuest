@@ -32,10 +32,10 @@ abstract class SavingGoalDao {
             WHEN type = 'INCOME' THEN amount
             WHEN type = 'EXPENSE' THEN -amount
             ELSE 0 END), 0)
-            - (SELECT COALESCE(SUM(amount), 0) FROM goal_contributions)
-        FROM transactions
+            - (SELECT COALESCE(SUM(amount), 0) FROM goal_contributions WHERE accountId = :accountId)
+        FROM transactions WHERE accountId = :accountId
     """)
-    protected abstract suspend fun availableAmount(): Long
+    protected abstract suspend fun availableAmount(accountId: Long): Long
 
     suspend fun createGoal(name: String, targetAmount: Long): Long {
         require(name.isNotBlank()) { "Escribe un nombre para la meta." }
@@ -45,14 +45,14 @@ abstract class SavingGoalDao {
 
     // La comprobación y la reserva son atómicas, incluso con dos aportes simultáneos.
     @Transaction
-    open suspend fun contribute(goalId: Long, amount: Long): Long {
+    open suspend fun contribute(goalId: Long, amount: Long, accountId: Long = 1): Long {
         require(amount > 0) { "El aporte debe ser mayor que cero." }
         val goal = requireNotNull(findGoal(goalId)) { "La meta ya no existe." }
         require(amount <= goal.targetAmount - savedAmount(goalId)) {
             "El aporte supera el monto que falta para completar la meta."
         }
-        require(amount <= availableAmount()) { "No tienes suficiente dinero disponible." }
+        require(amount <= availableAmount(accountId)) { "No tienes suficiente dinero disponible." }
         // Reservar dinero no crea un gasto ni reduce el patrimonio.
-        return insertContribution(GoalContributionEntity(goalId = goalId, amount = amount))
+        return insertContribution(GoalContributionEntity(goalId = goalId, amount = amount, accountId = accountId))
     }
 }

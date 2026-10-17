@@ -9,7 +9,7 @@ class TransactionRepository(private val database: SaveQuestDatabase) {
     val transactions = database.transactionDao().getAll()
 
     /** El movimiento y su recompensa se confirman juntos o se revierten juntos. */
-    suspend fun record(type: TransactionType, amount: Long, category: String, description: String) {
+    suspend fun record(type: TransactionType, amount: Long, category: String, description: String, accountId: Long = 1) {
         require(type == TransactionType.INCOME || type == TransactionType.EXPENSE) {
             "Los aportes se registran desde Metas."
         }
@@ -17,7 +17,7 @@ class TransactionRepository(private val database: SaveQuestDatabase) {
         require(category.isNotBlank()) { "Escribe una categoría." }
         database.withTransaction {
             database.transactionDao().insert(TransactionEntity(
-                type = type.name, amount = amount, category = category.trim(),
+                type = type.name, amount = amount, accountId = accountId, category = category.trim(),
                 description = description.trim(), date = System.currentTimeMillis()
             ))
             database.userProgressDao().addXp(10)

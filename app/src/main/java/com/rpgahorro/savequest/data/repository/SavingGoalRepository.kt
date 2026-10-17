@@ -8,6 +8,6 @@ class SavingGoalRepository(private val dao: SavingGoalDao) {
     suspend fun createGoal(name: String, targetAmount: Long): Long =
         dao.createGoal(name, targetAmount)
 
-    suspend fun contribute(goalId: Long, amount: Long): Long =
-        dao.contribute(goalId, amount)
+    suspend fun contribute(goalId: Long, amount: Long, accountId: Long = 1): Long =
+        dao.contribute(goalId, amount, accountId)
 }

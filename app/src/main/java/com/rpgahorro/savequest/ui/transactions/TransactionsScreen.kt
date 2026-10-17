@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-fun TransactionsScreen(transactions: List<TransactionEntity>) {
+fun TransactionsScreen(transactions: List<TransactionEntity>, accounts: List<com.rpgahorro.savequest.data.local.entity.AccountBalance> = emptyList()) {
     var filter by rememberSaveable { mutableStateOf("Todos") }
     val visible = transactions.filter {
         when (filter) { "Ingresos" -> it.type == "INCOME"; "Gastos" -> it.type == "EXPENSE"; else -> true }
@@ -41,6 +41,7 @@ fun TransactionsScreen(transactions: List<TransactionEntity>) {
             QuestPanel {
                 TransactionItem(transaction.description.ifBlank { transaction.category }, transaction.category,
                     transaction.amount, transaction.type == TransactionType.INCOME.name)
+                Text(accounts.firstOrNull { it.account.id == transaction.accountId }?.account?.name ?: "Cuenta", color = SqPrimarySoft, style = MaterialTheme.typography.bodySmall)
                 Text(dateFormat.format(Instant.ofEpochMilli(transaction.date).atZone(ZoneId.systemDefault())),
                     style = MaterialTheme.typography.bodySmall, color = SqTextSecondary)
             }

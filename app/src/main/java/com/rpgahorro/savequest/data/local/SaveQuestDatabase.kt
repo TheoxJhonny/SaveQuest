@@ -14,16 +14,19 @@ import com.rpgahorro.savequest.data.local.entity.ChallengeEntity
 
 @Database(
     entities = [
+        com.rpgahorro.savequest.data.local.entity.AccountEntity::class,
         TransactionEntity::class,
         UserProgressEntity::class,
         ChallengeEntity::class,
         SavingGoalEntity::class,
         GoalContributionEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class SaveQuestDatabase : RoomDatabase() {
+
+    abstract fun accountDao(): com.rpgahorro.savequest.data.local.dao.AccountDao
 
     abstract fun transactionDao(): TransactionDao
 

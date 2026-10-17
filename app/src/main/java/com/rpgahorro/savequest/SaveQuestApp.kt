@@ -16,6 +16,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rpgahorro.savequest.navigation.SaveQuestDestination
 import com.rpgahorro.savequest.ui.components.SaveQuestBottomBar
+import com.rpgahorro.savequest.ui.accounts.AccountsScreen
+import com.rpgahorro.savequest.ui.accounts.AccountsViewModel
 import com.rpgahorro.savequest.ui.goals.GoalsScreen
 import com.rpgahorro.savequest.ui.goals.GoalsViewModel
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -73,7 +75,9 @@ fun SaveQuestApp() {
         )
     )
 
-    val goalsViewModel: GoalsViewModel = viewModel(factory = GoalsViewModel.Factory(application.savingGoalRepository))
+    val goalsViewModel: GoalsViewModel = viewModel(factory = GoalsViewModel.Factory(application.savingGoalRepository, application.accountRepository))
+    val accountsViewModel: AccountsViewModel = viewModel(factory = AccountsViewModel.Factory(application.accountRepository))
+    val accounts by accountsViewModel.accounts.collectAsState()
     var pendingGoalId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     val homeViewModel: HomeViewModel = viewModel(
@@ -163,7 +167,7 @@ fun SaveQuestApp() {
             composable(SaveQuestDestination.Transactions.route) {
 
                 TransactionsScreen(
-                    transactions = transactions
+                    transactions = transactions, accounts = accounts
                 )
             }
 
@@ -176,9 +180,13 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Profile.route) {
-                ProfileScreen(homeUiState)
+                ProfileScreen(homeUiState, { navController.navigate(SaveQuestDestination.Accounts.route) { launchSingleTop = true } })
 
 
+            }
+
+            composable(SaveQuestDestination.Accounts.route) {
+                AccountsScreen(accountsViewModel, { navController.popBackStack() })
             }
 
             listOf(
@@ -189,10 +197,11 @@ fun SaveQuestApp() {
                     AddTransactionScreen(
                         type = type,
                         saveState = transactionViewModel.saveState,
+                        accounts = accounts,
                         onBack = { transactionViewModel.clearStatus(); navController.popBackStack() },
                         onSaved = { transactionViewModel.clearStatus(); navController.popBackStack() },
-                        onSave = { amount, category, description ->
-                            transactionViewModel.addTransaction(type, amount, category, description)
+                        onSave = { amount, category, description, accountId ->
+                            transactionViewModel.addTransaction(type, amount, category, description, accountId)
                         }
                     )
                 }

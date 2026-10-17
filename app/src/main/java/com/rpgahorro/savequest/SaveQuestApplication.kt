@@ -100,6 +100,9 @@ class SaveQuestApplication : Application() {
         private set
 
 
+    lateinit var accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository
+        private set
+
     lateinit var savingGoalRepository: SavingGoalRepository
         private set
 
@@ -115,7 +118,8 @@ class SaveQuestApplication : Application() {
             .addMigrations(
                 MIGRATION_1_2,
                 MIGRATION_2_3,
-                MIGRATION_3_4
+                MIGRATION_3_4,
+                com.rpgahorro.savequest.data.local.MIGRATION_4_5
             )
             .addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults)
             .build()
@@ -132,6 +136,7 @@ class SaveQuestApplication : Application() {
             database.userProgressDao()
         )
 
+        accountRepository = com.rpgahorro.savequest.data.repository.AccountRepository(database.accountDao())
         savingGoalRepository = SavingGoalRepository(database.savingGoalDao())
 
         challengeRepository = ChallengeRepository(

@@ -1,5 +1,7 @@
 package com.rpgahorro.savequest.ui.transactions
 
+import com.rpgahorro.savequest.data.local.entity.AccountBalance
+import com.rpgahorro.savequest.ui.accounts.AccountPicker
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -25,10 +27,12 @@ import com.rpgahorro.savequest.ui.theme.*
 fun AddTransactionScreen(
     type: TransactionType,
     onBack: () -> Unit,
-    onSave: (Long, String, String) -> Unit,
+    onSave: (Long, String, String, Long) -> Unit,
+    accounts: List<AccountBalance>,
     saveState: TransactionSaveState = TransactionSaveState(),
     onSaved: () -> Unit = {}
 ) {
+    var accountId by rememberSaveable(type) { mutableLongStateOf(1L) }
     var amount by rememberSaveable(type) { mutableStateOf("") }
     var category by rememberSaveable(type) { mutableStateOf("") }
     var description by rememberSaveable(type) { mutableStateOf("") }
@@ -52,6 +56,7 @@ fun AddTransactionScreen(
         QuestPanel {
             Icon(if (expense) Icons.Outlined.RemoveCircle else Icons.Outlined.AddCircle, null, Modifier.size(36.dp), tint = accent)
             Text(if (expense) "¿En qué utilizaste tu dinero?" else "Registra el dinero que recibiste.", color = SqTextSecondary)
+            AccountPicker(accounts, accountId, !busy) { accountId = it }
             OutlinedTextField(amount, { amount = it }, Modifier.fillMaxWidth(), enabled = !busy,
                 label = { Text("Monto en pesos") }, prefix = { Text("$") }, singleLine = true,
                 isError = submitted && invalidAmount,
@@ -67,8 +72,8 @@ fun AddTransactionScreen(
             saveState.error?.let { Text(it, color = SqExpense) }
             QuestButton(if (busy) "Guardando…" else "Guardar movimiento", {
                 submitted = true
-                if (!invalidAmount && category.isNotBlank()) onSave(parsed!!, category.trim(), description.trim())
-            }, enabled = !busy)
+                if (!invalidAmount && category.isNotBlank()) onSave(parsed!!, category.trim(), description.trim(), accountId)
+            }, enabled = !busy && accounts.any { it.account.id == accountId })
         }
         Text("★ +10 XP por registrar tu movimiento", color = SqXp)
         Spacer(Modifier.height(16.dp))

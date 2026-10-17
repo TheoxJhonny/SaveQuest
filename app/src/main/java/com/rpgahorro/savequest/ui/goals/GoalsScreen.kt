@@ -1,5 +1,7 @@
 package com.rpgahorro.savequest.ui.goals
 
+import com.rpgahorro.savequest.data.local.entity.AccountBalance
+import com.rpgahorro.savequest.ui.accounts.AccountPicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +20,7 @@ import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
 fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long? = null, onInitialGoalHandled: () -> Unit = {}) {
+    val accounts by viewModel.accounts.collectAsState()
     val goals by viewModel.goals.collectAsState()
     var creating by rememberSaveable { mutableStateOf(false) }
     var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -61,22 +64,24 @@ fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long?
             key = if (creating) "new" else "goal-$selectedId",
             title = if (creating) "Nueva meta" else "Aportar a ${selected!!.goal.name}",
             creating = creating,
+            accounts = accounts,
             saving = viewModel.saving,
             error = viewModel.error,
-            hint = if (creating) "Elige algo que quieras alcanzar." else "Disponible: ${money(available)}\nFaltan: ${money(selected!!.goal.targetAmount - selected.savedAmount)}",
+            hint = if (creating) "Elige algo que quieras alcanzar." else "Disponible total: ${money(available)}\nFaltan: ${money(selected!!.goal.targetAmount - selected.savedAmount)}",
             onDismiss = { if (!viewModel.saving) { creating = false; selectedId = null; viewModel.clearError() } },
-            onSave = { name, amount ->
+            onSave = { name, amount, accountId ->
                 val done = { creating = false; selectedId = null }
                 if (creating) viewModel.create(name, amount, done)
-                else selectedId?.let { viewModel.contribute(it, amount, done) }
+                else selectedId?.let { viewModel.contribute(it, amount, accountId, done) }
             }
         )
     }
 }
 
 @Composable
-private fun GoalEditor(key: String, title: String, creating: Boolean, saving: Boolean, error: String?, hint: String,
-                       onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+private fun GoalEditor(key: String, title: String, creating: Boolean, accounts: List<AccountBalance>, saving: Boolean, error: String?, hint: String,
+                       onDismiss: () -> Unit, onSave: (String, String, Long) -> Unit) {
+    var accountId by rememberSaveable(key) { mutableLongStateOf(1L) }
     var name by rememberSaveable(key) { mutableStateOf("") }
     var amount by rememberSaveable(key) { mutableStateOf("") }
     AlertDialog(onDismissRequest = onDismiss, containerColor = SqSurface,
@@ -84,6 +89,7 @@ private fun GoalEditor(key: String, title: String, creating: Boolean, saving: Bo
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(hint, color = SqTextSecondary)
+                if (!creating) AccountPicker(accounts, accountId, !saving) { accountId = it }
                 if (creating) OutlinedTextField(name, { name = it }, enabled = !saving, label = { Text("Nombre de la meta") }, singleLine = true)
                 OutlinedTextField(amount, { amount = it }, enabled = !saving,
                     label = { Text(if (creating) "Objetivo en pesos" else "Aporte en pesos") },
@@ -92,6 +98,6 @@ private fun GoalEditor(key: String, title: String, creating: Boolean, saving: Bo
                 if (error != null) Text(error, color = SqExpense)
             }
         },
-        confirmButton = { TextButton({ onSave(name, amount) }, enabled = !saving) { Text(if (saving) "Guardando…" else "Guardar") } },
+        confirmButton = { TextButton({ onSave(name, amount, accountId) }, enabled = !saving && (creating || accounts.any { it.account.id == accountId })) { Text(if (saving) "Guardando…" else "Guardar") } },
         dismissButton = { TextButton(onDismiss, enabled = !saving) { Text("Cancelar") } })
 }

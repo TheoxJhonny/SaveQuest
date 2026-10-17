@@ -12,12 +12,13 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["goalId"],
         onDelete = ForeignKey.RESTRICT
-    )],
-    indices = [Index("goalId")]
+    ), ForeignKey(entity = AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"], onDelete = ForeignKey.RESTRICT)],
+    indices = [Index("goalId"), Index("accountId")]
 )
 data class GoalContributionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val goalId: Long,
     val amount: Long,
-    val date: Long = System.currentTimeMillis()
+    val date: Long = System.currentTimeMillis(),
+    val accountId: Long = 1
 )

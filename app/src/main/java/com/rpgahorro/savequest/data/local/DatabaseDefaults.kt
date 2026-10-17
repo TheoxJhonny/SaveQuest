@@ -9,6 +9,7 @@ object DatabaseDefaults : RoomDatabase.Callback() {
         super.onOpen(db)
         db.beginTransaction()
         try {
+            db.execSQL("INSERT OR IGNORE INTO accounts (id, name, createdAt) VALUES (1, 'Cuenta principal', 0)")
             db.execSQL("INSERT OR IGNORE INTO user_progress (id, totalXp) VALUES (1, 0)")
             db.execSQL("""
                 INSERT OR IGNORE INTO challenges

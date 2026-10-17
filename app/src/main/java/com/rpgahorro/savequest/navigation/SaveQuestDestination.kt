@@ -48,6 +48,8 @@ sealed class SaveQuestDestination(
         icon = Icons.Outlined.Shield
     )
 
+    data object Accounts : SaveQuestDestination("accounts", "Mis cuentas", Icons.Outlined.AccountBalanceWallet)
+
     data object AddExpense : SaveQuestDestination(
         route = "add_expense",
         label = "Registrar gasto",

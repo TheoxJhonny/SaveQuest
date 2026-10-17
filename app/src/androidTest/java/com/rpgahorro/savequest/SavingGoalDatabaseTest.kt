@@ -43,7 +43,7 @@ class SavingGoalDatabaseTest {
             old.version = 3
         }
         val db = Room.databaseBuilder(context, SaveQuestDatabase::class.java, name)
-            .addMigrations(MIGRATION_3_4).build()
+            .addMigrations(MIGRATION_3_4, com.rpgahorro.savequest.data.local.MIGRATION_4_5).build()
         try {
             val transactions = db.transactionDao().getAll().first()
             assertEquals(2, transactions.size)
@@ -80,7 +80,7 @@ class SavingGoalDatabaseTest {
 
     @Test
     fun contributionsReserveFundsWithoutCreatingExpensesAndRejectInvalidAmounts() = runBlocking {
-        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).build()
+        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults).build()
         try {
             val dao = db.savingGoalDao()
             db.transactionDao().insert(TransactionEntity(type = "INCOME", amount = 10000, category = "Pago", description = "", date = 1))
@@ -103,7 +103,7 @@ class SavingGoalDatabaseTest {
 
             // La FK protege también escrituras directas a SQLite.
             try {
-                db.openHelper.writableDatabase.execSQL("INSERT INTO goal_contributions (goalId, amount, date) VALUES (999999, 1, 1)")
+                db.openHelper.writableDatabase.execSQL("INSERT INTO goal_contributions (goalId, amount, date, accountId) VALUES (999999, 1, 1, 1)")
                 fail("Se aceptó un aporte sin meta")
             } catch (_: android.database.sqlite.SQLiteConstraintException) { }
             try {
@@ -117,7 +117,7 @@ class SavingGoalDatabaseTest {
 
     @Test
     fun concurrentContributionsCannotReserveTheSameAvailableMoney() = runBlocking {
-        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).build()
+        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults).build()
         try {
             db.transactionDao().insert(TransactionEntity(type = "INCOME", amount = 10000, category = "Pago", description = "", date = 1))
             val dao = db.savingGoalDao()

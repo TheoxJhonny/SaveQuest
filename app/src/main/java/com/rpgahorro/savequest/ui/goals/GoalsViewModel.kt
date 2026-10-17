@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class GoalsViewModel(private val repository: SavingGoalRepository) : ViewModel() {
+class GoalsViewModel(private val repository: SavingGoalRepository, accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository) : ViewModel() {
+    val accounts = accountRepository.accounts.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val goals = repository.goals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     var saving by mutableStateOf(false)
         private set
@@ -25,8 +26,8 @@ class GoalsViewModel(private val repository: SavingGoalRepository) : ViewModel()
         repository.createGoal(name, parseAmount(amount))
     }
 
-    fun contribute(goalId: Long, amount: String, onSuccess: () -> Unit) = save(onSuccess) {
-        repository.contribute(goalId, parseAmount(amount))
+    fun contribute(goalId: Long, amount: String, accountId: Long, onSuccess: () -> Unit) = save(onSuccess) {
+        repository.contribute(goalId, parseAmount(amount), accountId)
     }
 
     private fun parseAmount(text: String): Long {
@@ -52,11 +53,11 @@ class GoalsViewModel(private val repository: SavingGoalRepository) : ViewModel()
         }
     }
 
-    class Factory(private val repository: SavingGoalRepository) : ViewModelProvider.Factory {
+    class Factory(private val repository: SavingGoalRepository, private val accounts: com.rpgahorro.savequest.data.repository.AccountRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(GoalsViewModel::class.java))
-            return GoalsViewModel(repository) as T
+            return GoalsViewModel(repository, accounts) as T
         }
     }
 }

@@ -12,7 +12,7 @@ import com.rpgahorro.savequest.ui.home.HomeUiState
 import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
-fun ProfileScreen(uiState: HomeUiState) {
+fun ProfileScreen(uiState: HomeUiState, onAccounts: () -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         QuestLabel("TU AVENTURA")
         Text("Perfil", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
@@ -23,6 +23,7 @@ fun ProfileScreen(uiState: HomeUiState) {
             Text("${uiState.goals.count { it.savedAmount >= it.goal.targetAmount }} metas completadas", color = SqSavings)
             Text("${uiState.challenges.count { it.completed }} desafíos completados", color = SqTextSecondary)
         }
+        QuestButton("Mis cuentas", onAccounts)
         Spacer(Modifier.height(80.dp))
     }
 }

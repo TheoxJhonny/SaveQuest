@@ -57,10 +57,10 @@ class QuestUiTest {
 
     @Test fun goalsCreateValidateAndReserveRealFunds() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).build()
+        val db = Room.inMemoryDatabaseBuilder(context, SaveQuestDatabase::class.java).addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults).build()
         try {
             db.transactionDao().insert(TransactionEntity(type = "INCOME", amount = 10000, category = "Prueba", description = "", date = 1))
-            val vm = GoalsViewModel(SavingGoalRepository(db.savingGoalDao()))
+            val vm = GoalsViewModel(SavingGoalRepository(db.savingGoalDao()), com.rpgahorro.savequest.data.repository.AccountRepository(db.accountDao()))
             compose.setContent { val goals = vm.goals.collectAsState().value; SaveQuestTheme { Surface { GoalsScreen(vm, available = 10000 - goals.sumOf { it.savedAmount }) } } }
             compose.onNodeWithText("+  Nueva meta").performClick()
             compose.onNodeWithText("Nombre de la meta").performTextInput("Viaje")
