@@ -36,57 +36,55 @@ class TransactionViewModel(
         )
 
         viewModelScope.launch {
+
+            // 1. Guardar el movimiento UNA sola vez
             repository.insert(transaction)
 
-            viewModelScope.launch {
+            // 2. Dar XP base por registrar el movimiento
+            userProgressRepository.addXp(10)
 
-                // Guardar el movimiento
-                repository.insert(transaction)
+            // 3. Buscar el desafío "Mantén el ritmo"
+            val challenge = challengeRepository
+                .challenges
+                .first()
+                .firstOrNull {
+                    it.id == "track_3_transactions"
+                }
 
-                // XP base por mantener las finanzas registradas
-                userProgressRepository.addXp(10)
+            if (
+                challenge != null &&
+                !challenge.completed
+            ) {
 
-                // Buscar el desafío "Mantén el ritmo"
-                val challenge = challengeRepository
-                    .challenges
-                    .first()
-                    .firstOrNull {
-                        it.id == "track_3_transactions"
-                    }
+                val newProgress =
+                    (challenge.progress + 1)
+                        .coerceAtMost(challenge.target)
 
-                if (
-                    challenge != null &&
-                    !challenge.completed
-                ) {
+                challengeRepository.updateProgress(
+                    challengeId = challenge.id,
+                    progress = newProgress
+                )
 
-                    val newProgress =
-                        (challenge.progress + 1)
-                            .coerceAtMost(challenge.target)
+                // 4. Comprobar si se completó
+                if (newProgress >= challenge.target) {
 
-                    challengeRepository.updateProgress(
-                        challengeId = challenge.id,
-                        progress = newProgress
+                    challengeRepository.completeChallenge(
+                        challengeId = challenge.id
                     )
 
-                    if (newProgress >= challenge.target) {
+                    // 5. Entregar recompensa una sola vez
+                    if (!challenge.rewardClaimed) {
 
-                        challengeRepository.completeChallenge(
-                            challengeId = challenge.id
+                        userProgressRepository.addXp(
+                            challenge.xpReward
                         )
 
-                        if (!challenge.rewardClaimed) {
-
-                            userProgressRepository.addXp(
-                                challenge.xpReward
-                            )
-
-                            challengeRepository.markRewardClaimed(
-                                challengeId = challenge.id
-                            )
-                        }
+                        challengeRepository.markRewardClaimed(
+                            challengeId = challenge.id
+                        )
                     }
                 }
             }
         }
     }
-}
+    }
