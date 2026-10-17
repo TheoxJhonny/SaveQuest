@@ -1,5 +1,7 @@
 package com.rpgahorro.savequest
 
+import com.rpgahorro.savequest.data.local.MIGRATION_3_4
+import com.rpgahorro.savequest.data.repository.SavingGoalRepository
 import android.app.Application
 import androidx.room.Room
 import androidx.room.migration.Migration
@@ -98,6 +100,9 @@ class SaveQuestApplication : Application() {
         private set
 
 
+    lateinit var savingGoalRepository: SavingGoalRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
@@ -109,7 +114,8 @@ class SaveQuestApplication : Application() {
         )
             .addMigrations(
                 MIGRATION_1_2,
-                MIGRATION_2_3
+                MIGRATION_2_3,
+                MIGRATION_3_4
             )
             .build()
 
@@ -124,6 +130,8 @@ class SaveQuestApplication : Application() {
         userProgressRepository = UserProgressRepository(
             database.userProgressDao()
         )
+
+        savingGoalRepository = SavingGoalRepository(database.savingGoalDao())
 
         challengeRepository = ChallengeRepository(
             database.challengeDao()
