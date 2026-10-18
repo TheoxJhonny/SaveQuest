@@ -43,7 +43,7 @@ class AccountIntegrityTest {
             db.version = 4
         }
         val db = Room.databaseBuilder(context, SaveQuestDatabase::class.java, name)
-            .addMigrations(MIGRATION_4_5).addCallback(DatabaseDefaults).build()
+            .addMigrations(MIGRATION_4_5, com.rpgahorro.savequest.data.local.MIGRATION_5_6).addCallback(DatabaseDefaults).build()
         try {
             val transactions = db.transactionDao().getAll().first()
             assertEquals(setOf(7L, 8L), transactions.map { it.id }.toSet())

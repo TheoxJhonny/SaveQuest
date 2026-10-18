@@ -180,9 +180,15 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Profile.route) {
-                ProfileScreen(homeUiState, { navController.navigate(SaveQuestDestination.Accounts.route) { launchSingleTop = true } })
+                ProfileScreen(homeUiState, { navController.navigate(SaveQuestDestination.Accounts.route) { launchSingleTop = true } }, { navController.navigate(SaveQuestDestination.Contacts.route) { launchSingleTop = true } })
 
 
+            }
+
+            composable(SaveQuestDestination.Contacts.route) {
+                val contactsViewModel: com.rpgahorro.savequest.ui.contacts.ContactsViewModel = viewModel(
+                    factory = com.rpgahorro.savequest.ui.contacts.ContactsViewModel.Factory(application.contactRepository))
+                com.rpgahorro.savequest.ui.contacts.ContactsScreen(contactsViewModel, { navController.popBackStack() })
             }
 
             composable(SaveQuestDestination.Accounts.route) {

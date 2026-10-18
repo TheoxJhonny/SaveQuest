@@ -43,7 +43,7 @@ class SavingGoalDatabaseTest {
             old.version = 3
         }
         val db = Room.databaseBuilder(context, SaveQuestDatabase::class.java, name)
-            .addMigrations(MIGRATION_3_4, com.rpgahorro.savequest.data.local.MIGRATION_4_5).build()
+            .addMigrations(MIGRATION_3_4, com.rpgahorro.savequest.data.local.MIGRATION_4_5, com.rpgahorro.savequest.data.local.MIGRATION_5_6).build()
         try {
             val transactions = db.transactionDao().getAll().first()
             assertEquals(2, transactions.size)

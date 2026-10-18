@@ -48,6 +48,8 @@ sealed class SaveQuestDestination(
         icon = Icons.Outlined.Shield
     )
 
+    data object Contacts : SaveQuestDestination("contacts", "Contactos", Icons.Outlined.Person)
+
     data object Accounts : SaveQuestDestination("accounts", "Mis cuentas", Icons.Outlined.AccountBalanceWallet)
 
     data object AddExpense : SaveQuestDestination(
