@@ -15,14 +15,25 @@ import com.rpgahorro.savequest.ui.theme.*
 @Composable
 fun SaveQuestBottomBar(currentRoute: String?, onNavigate: (SaveQuestDestination) -> Unit) {
     val shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
-    NavigationBar(modifier = Modifier.clip(shape).border(1.dp, Color(0xFF44366B), shape), containerColor = SqSurface) {
+    NavigationBar(
+        modifier = Modifier
+            .clip(shape)
+            .border(1.dp, Color(0xFF44366B), shape),
+        containerColor = SqSurface
+    ) {
         bottomDestinations.forEach { destination ->
-            NavigationBarItem(selected = currentRoute == destination.route, onClick = { onNavigate(destination) },
+            NavigationBarItem(
+                selected = currentRoute == destination.route, onClick = { onNavigate(destination) },
                 icon = { Icon(destination.icon, contentDescription = null) },
                 label = { Text(destination.label, fontSize = 10.sp, maxLines = 1) },
-                colors = NavigationBarItemDefaults.colors(selectedIconColor = SqPrimarySoft,
-                    selectedTextColor = SqPrimarySoft, indicatorColor = SqPrimary.copy(alpha = .15f),
-                    unselectedIconColor = SqTextSecondary, unselectedTextColor = SqTextSecondary))
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = SqPrimarySoft,
+                    selectedTextColor = SqPrimarySoft,
+                    indicatorColor = SqPrimary.copy(alpha = .15f),
+                    unselectedIconColor = SqTextSecondary,
+                    unselectedTextColor = SqTextSecondary
+                )
+            )
         }
     }
 }

@@ -19,13 +19,23 @@ fun AccountsScreen(viewModel: AccountsViewModel, onBack: () -> Unit) {
     var creating by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(viewModel.created) {
-        if (viewModel.created) { creating = false; name = ""; viewModel.clearStatus() }
+        if (viewModel.created) {
+            creating = false; name = ""; viewModel.clearStatus()
+        }
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         item {
             IconButton(onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Volver") }
             QuestLabel("ORGANIZA TU DINERO")
-            Text("Mis cuentas", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
+            Text(
+                "Mis cuentas",
+                style = MaterialTheme.typography.headlineLarge,
+                color = SqTextPrimary
+            )
             Text("Separa efectivo, ahorros y otras cuentas.", color = SqTextSecondary)
             QuestButton("+  Nueva cuenta", { viewModel.clearStatus(); creating = true })
         }
@@ -34,7 +44,10 @@ fun AccountsScreen(viewModel: AccountsViewModel, onBack: () -> Unit) {
                 Text(balance.account.name, style = MaterialTheme.typography.titleLarge)
                 Text(money(balance.balance), style = MaterialTheme.typography.headlineMedium)
                 Text("Reservado: ${money(balance.reserved)}", color = SqPrimarySoft)
-                Text("Disponible: ${money(balance.available)}", color = if (balance.available < 0) SqExpense else SqSavings)
+                Text(
+                    "Disponible: ${money(balance.available)}",
+                    color = if (balance.available < 0) SqExpense else SqSavings
+                )
             }
         }
     }
@@ -43,11 +56,30 @@ fun AccountsScreen(viewModel: AccountsViewModel, onBack: () -> Unit) {
         title = { Text("Nueva cuenta") },
         text = {
             Column {
-                OutlinedTextField(name, { name = it }, enabled = !viewModel.saving, label = { Text("Nombre de la cuenta") }, singleLine = true)
-                Text("Comienza en cero. Registra un ingreso para añadir saldo.", color = SqTextSecondary)
+                OutlinedTextField(
+                    name,
+                    { name = it },
+                    enabled = !viewModel.saving,
+                    label = { Text("Nombre de la cuenta") },
+                    singleLine = true
+                )
+                Text(
+                    "Comienza en cero. Registra un ingreso para añadir saldo.",
+                    color = SqTextSecondary
+                )
                 viewModel.error?.let { Text(it, color = SqExpense) }
             }
         },
-        confirmButton = { TextButton({ viewModel.create(name) }, enabled = !viewModel.saving) { Text(if (viewModel.saving) "Guardando…" else "Crear") } },
-        dismissButton = { TextButton({ creating = false }, enabled = !viewModel.saving) { Text("Cancelar") } })
+        confirmButton = {
+            TextButton(
+                { viewModel.create(name) },
+                enabled = !viewModel.saving
+            ) { Text(if (viewModel.saving) "Guardando…" else "Crear") }
+        },
+        dismissButton = {
+            TextButton(
+                { creating = false },
+                enabled = !viewModel.saving
+            ) { Text("Cancelar") }
+        })
 }

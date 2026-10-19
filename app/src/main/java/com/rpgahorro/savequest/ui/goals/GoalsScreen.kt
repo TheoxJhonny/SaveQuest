@@ -19,7 +19,12 @@ import com.rpgahorro.savequest.ui.components.*
 import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
-fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long? = null, onInitialGoalHandled: () -> Unit = {}) {
+fun GoalsScreen(
+    viewModel: GoalsViewModel,
+    available: Long,
+    initialGoalId: Long? = null,
+    onInitialGoalHandled: () -> Unit = {}
+) {
     val accounts by viewModel.accounts.collectAsState()
     val goals by viewModel.goals.collectAsState()
     var creating by rememberSaveable { mutableStateOf(false) }
@@ -32,31 +37,51 @@ fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long?
         }
     }
     val selected = goals.firstOrNull { it.goal.id == selectedId }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 100.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(
+        Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 100.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         item {
             QuestLabel("TUS OBJETIVOS")
-            Text("Metas de ahorro", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
+            Text(
+                "Metas de ahorro",
+                style = MaterialTheme.typography.headlineLarge,
+                color = SqTextPrimary
+            )
             Spacer(Modifier.height(8.dp))
             Text("Cada aporte te acerca a tu próxima conquista.", color = SqTextSecondary)
         }
         item {
             QuestPanel {
                 Text("Disponible para reservar", color = SqTextSecondary)
-                Text(money(available), style = MaterialTheme.typography.headlineMedium, color = SqSavings)
+                Text(
+                    money(available),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = SqSavings
+                )
                 Text("Un aporte reserva tu dinero; no es un gasto.", color = SqTextSecondary)
                 QuestButton("+  Nueva meta", { viewModel.clearError(); creating = true })
             }
         }
         if (goals.isEmpty()) item {
-            Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 QuestIllustration(QuestArt.Treasure, Modifier.size(100.dp))
                 Text("Tu próxima aventura comienza con una meta.", color = SqTextSecondary)
             }
         }
         items(goals, key = { it.goal.id }) { goal ->
-            SavingGoalCard(goal.goal.name, goal.savedAmount, goal.goal.targetAmount,
-                { viewModel.clearError(); selectedId = goal.goal.id }, heading = "OBJETIVO DE AHORRO")
+            SavingGoalCard(
+                goal.goal.name,
+                goal.savedAmount,
+                goal.goal.targetAmount,
+                { viewModel.clearError(); selectedId = goal.goal.id },
+                heading = "OBJETIVO DE AHORRO"
+            )
         }
     }
     if (creating || selected != null) {
@@ -67,8 +92,16 @@ fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long?
             accounts = accounts,
             saving = viewModel.saving,
             error = viewModel.error,
-            hint = if (creating) "Elige algo que quieras alcanzar." else "Disponible total: ${money(available)}\nFaltan: ${money(selected!!.goal.targetAmount - selected.savedAmount)}",
-            onDismiss = { if (!viewModel.saving) { creating = false; selectedId = null; viewModel.clearError() } },
+            hint = if (creating) "Elige algo que quieras alcanzar." else "Disponible total: ${
+                money(
+                    available
+                )
+            }\nFaltan: ${money(selected!!.goal.targetAmount - selected.savedAmount)}",
+            onDismiss = {
+                if (!viewModel.saving) {
+                    creating = false; selectedId = null; viewModel.clearError()
+                }
+            },
             onSave = { name, amount, accountId ->
                 val done = { creating = false; selectedId = null }
                 if (creating) viewModel.create(name, amount, done)
@@ -79,25 +112,54 @@ fun GoalsScreen(viewModel: GoalsViewModel, available: Long, initialGoalId: Long?
 }
 
 @Composable
-private fun GoalEditor(key: String, title: String, creating: Boolean, accounts: List<AccountBalance>, saving: Boolean, error: String?, hint: String,
-                       onDismiss: () -> Unit, onSave: (String, String, Long) -> Unit) {
+private fun GoalEditor(
+    key: String,
+    title: String,
+    creating: Boolean,
+    accounts: List<AccountBalance>,
+    saving: Boolean,
+    error: String?,
+    hint: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String, Long) -> Unit
+) {
     var accountId by rememberSaveable(key) { mutableLongStateOf(1L) }
     var name by rememberSaveable(key) { mutableStateOf("") }
     var amount by rememberSaveable(key) { mutableStateOf("") }
-    AlertDialog(onDismissRequest = onDismiss, containerColor = SqSurface,
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = SqSurface,
         title = { Text(title) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Text(hint, color = SqTextSecondary)
                 if (!creating) AccountPicker(accounts, accountId, !saving) { accountId = it }
-                if (creating) OutlinedTextField(name, { name = it }, enabled = !saving, label = { Text("Nombre de la meta") }, singleLine = true)
-                OutlinedTextField(amount, { amount = it }, enabled = !saving,
+                if (creating) OutlinedTextField(
+                    name,
+                    { name = it },
+                    enabled = !saving,
+                    label = { Text("Nombre de la meta") },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    amount,
+                    { amount = it },
+                    enabled = !saving,
                     label = { Text(if (creating) "Objetivo en pesos" else "Aporte en pesos") },
                     supportingText = { Text("Sin puntos ni comas") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
                 if (error != null) Text(error, color = SqExpense)
             }
         },
-        confirmButton = { TextButton({ onSave(name, amount, accountId) }, enabled = !saving && (creating || accounts.any { it.account.id == accountId })) { Text(if (saving) "Guardando…" else "Guardar") } },
+        confirmButton = {
+            TextButton(
+                { onSave(name, amount, accountId) },
+                enabled = !saving && (creating || accounts.any { it.account.id == accountId })
+            ) { Text(if (saving) "Guardando…" else "Guardar") }
+        },
         dismissButton = { TextButton(onDismiss, enabled = !saving) { Text("Cancelar") } })
 }

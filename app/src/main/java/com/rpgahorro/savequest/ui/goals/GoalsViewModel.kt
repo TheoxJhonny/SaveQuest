@@ -12,27 +12,39 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class GoalsViewModel(private val repository: SavingGoalRepository, accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository) : ViewModel() {
-    val accounts = accountRepository.accounts.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val goals = repository.goals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+class GoalsViewModel(
+    private val repository: SavingGoalRepository,
+    accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository
+) : ViewModel() {
+    val accounts = accountRepository.accounts.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
+    val goals =
+        repository.goals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     var saving by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)
         private set
 
-    fun clearError() { error = null }
+    fun clearError() {
+        error = null
+    }
 
     fun create(name: String, amount: String, onSuccess: () -> Unit) = save(onSuccess) {
         repository.createGoal(name, parseAmount(amount))
     }
 
-    fun contribute(goalId: Long, amount: String, accountId: Long, onSuccess: () -> Unit) = save(onSuccess) {
-        repository.contribute(goalId, parseAmount(amount), accountId)
-    }
+    fun contribute(goalId: Long, amount: String, accountId: Long, onSuccess: () -> Unit) =
+        save(onSuccess) {
+            repository.contribute(goalId, parseAmount(amount), accountId)
+        }
 
     private fun parseAmount(text: String): Long {
         require(text.isNotEmpty() && text.all { it in '0'..'9' }) { "Escribe un monto en pesos, sin puntos ni comas." }
-        return requireNotNull(text.toLongOrNull()?.takeIf { it > 0 }) { "Escribe un monto válido mayor que cero." }
+        return requireNotNull(
+            text.toLongOrNull()?.takeIf { it > 0 }) { "Escribe un monto válido mayor que cero." }
     }
 
     private fun save(onSuccess: () -> Unit, operation: suspend () -> Unit) {
@@ -49,11 +61,16 @@ class GoalsViewModel(private val repository: SavingGoalRepository, accountReposi
                 error = e.message
             } catch (_: Exception) {
                 error = "No se pudo guardar. Inténtalo nuevamente."
-            } finally { saving = false }
+            } finally {
+                saving = false
+            }
         }
     }
 
-    class Factory(private val repository: SavingGoalRepository, private val accounts: com.rpgahorro.savequest.data.repository.AccountRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: SavingGoalRepository,
+        private val accounts: com.rpgahorro.savequest.data.repository.AccountRepository
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(GoalsViewModel::class.java))

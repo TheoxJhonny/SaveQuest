@@ -33,27 +33,52 @@ fun ContactsScreen(viewModel: ContactsViewModel, onBack: () -> Unit) {
     var archiveId by rememberSaveable { mutableStateOf<Long?>(null) }
     val busy = viewModel.saving || viewModel.saved
     val selected = contacts?.firstOrNull { it.id == archiveId }
-    val visible = contacts.orEmpty().filter { it.archived == archived &&
-        (it.name.contains(search.trim(), ignoreCase = true) || it.phone.contains(search.trim())) }
+    val visible = contacts.orEmpty().filter {
+        it.archived == archived &&
+                (it.name.contains(
+                    search.trim(),
+                    ignoreCase = true
+                ) || it.phone.contains(search.trim()))
+    }
 
     LaunchedEffect(viewModel.saved) {
-        if (viewModel.saved) { editorOpen = false; archiveId = null; viewModel.clearStatus() }
+        if (viewModel.saved) {
+            editorOpen = false; archiveId = null; viewModel.clearStatus()
+        }
     }
     BackHandler(enabled = busy) { }
-    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onBack, enabled = !busy) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Volver") }
+                IconButton(onBack, enabled = !busy) {
+                    Icon(
+                        Icons.AutoMirrored.Rounded.ArrowBack,
+                        "Volver"
+                    )
+                }
                 QuestLabel("TU EQUIPO")
             }
             Text("Contactos", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
             Text("Personas con quienes compartes compras y gastos.", color = SqTextSecondary)
         }
-        item { QuestButton("Nuevo contacto", {
-            viewModel.clearStatus(); editingId = null; name = ""; phone = ""; notes = ""; editorOpen = true
-        }, enabled = !busy) }
         item {
-            OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Buscar por nombre o teléfono") })
+            QuestButton("Nuevo contacto", {
+                viewModel.clearStatus(); editingId = null; name = ""; phone = ""; notes =
+                ""; editorOpen = true
+            }, enabled = !busy)
+        }
+        item {
+            OutlinedTextField(
+                search,
+                { search = it },
+                Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Buscar por nombre o teléfono") })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(!archived, { archived = false }, label = { Text("Activos") })
                 FilterChip(archived, { archived = true }, label = { Text("Archivados") })
@@ -76,9 +101,14 @@ fun ContactsScreen(viewModel: ContactsViewModel, onBack: () -> Unit) {
                 if (contact.notes.isNotBlank()) Text(contact.notes, color = SqTextSecondary)
                 Row {
                     TextButton({
-                        viewModel.clearStatus(); editingId = contact.id; name = contact.name; phone = contact.phone; notes = contact.notes; editorOpen = true
+                        viewModel.clearStatus(); editingId = contact.id; name =
+                        contact.name; phone = contact.phone; notes = contact.notes; editorOpen =
+                        true
                     }, enabled = !busy) { Text("Editar") }
-                    TextButton({ viewModel.clearStatus(); archiveId = contact.id }, enabled = !busy) {
+                    TextButton(
+                        { viewModel.clearStatus(); archiveId = contact.id },
+                        enabled = !busy
+                    ) {
                         Text(if (contact.archived) "Restaurar" else "Archivar")
                     }
                 }
@@ -87,28 +117,78 @@ fun ContactsScreen(viewModel: ContactsViewModel, onBack: () -> Unit) {
         item { Spacer(Modifier.height(24.dp)) }
     }
     if (editorOpen) AlertDialog(
-        onDismissRequest = { if (!busy) { editorOpen = false; viewModel.clearStatus() } },
+        onDismissRequest = {
+            if (!busy) {
+                editorOpen = false; viewModel.clearStatus()
+            }
+        },
         title = { Text(if (editingId == null) "Nuevo contacto" else "Editar contacto") },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, enabled = !busy, singleLine = true, label = { Text("Nombre") })
-                OutlinedTextField(phone, { phone = it }, enabled = !busy, singleLine = true,
-                    label = { Text("Teléfono (opcional)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
-                OutlinedTextField(notes, { notes = it }, enabled = !busy, label = { Text("Nota (opcional)") }, maxLines = 4)
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    name,
+                    { name = it },
+                    enabled = !busy,
+                    singleLine = true,
+                    label = { Text("Nombre") })
+                OutlinedTextField(
+                    phone,
+                    { phone = it },
+                    enabled = !busy,
+                    singleLine = true,
+                    label = { Text("Teléfono (opcional)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                )
+                OutlinedTextField(
+                    notes,
+                    { notes = it },
+                    enabled = !busy,
+                    label = { Text("Nota (opcional)") },
+                    maxLines = 4
+                )
                 viewModel.error?.let { Text(it, color = SqExpense) }
             }
         },
-        confirmButton = { TextButton({ viewModel.save(editingId, name, phone, notes) }, enabled = !busy) { Text(if (busy) "Guardando…" else "Guardar") } },
-        dismissButton = { TextButton({ editorOpen = false; viewModel.clearStatus() }, enabled = !busy) { Text("Cancelar") } }
+        confirmButton = {
+            TextButton(
+                { viewModel.save(editingId, name, phone, notes) },
+                enabled = !busy
+            ) { Text(if (busy) "Guardando…" else "Guardar") }
+        },
+        dismissButton = {
+            TextButton(
+                { editorOpen = false; viewModel.clearStatus() },
+                enabled = !busy
+            ) { Text("Cancelar") }
+        }
     )
     if (selected != null) AlertDialog(
-        onDismissRequest = { if (!busy) { archiveId = null; viewModel.clearStatus() } },
+        onDismissRequest = {
+            if (!busy) {
+                archiveId = null; viewModel.clearStatus()
+            }
+        },
         title = { Text(if (selected.archived) "Restaurar contacto" else "Archivar contacto") },
-        text = { Column {
-            Text(if (selected.archived) "${selected.name} volverá a tus contactos activos." else "${selected.name} dejará de aparecer entre los activos. Su información se conservará.")
-            viewModel.error?.let { Text(it, color = SqExpense) }
-        } },
-        confirmButton = { TextButton({ viewModel.archive(selected.id, !selected.archived) }, enabled = !busy) { Text("Confirmar") } },
-        dismissButton = { TextButton({ archiveId = null; viewModel.clearStatus() }, enabled = !busy) { Text("Cancelar") } }
+        text = {
+            Column {
+                Text(if (selected.archived) "${selected.name} volverá a tus contactos activos." else "${selected.name} dejará de aparecer entre los activos. Su información se conservará.")
+                viewModel.error?.let { Text(it, color = SqExpense) }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                { viewModel.archive(selected.id, !selected.archived) },
+                enabled = !busy
+            ) { Text("Confirmar") }
+        },
+        dismissButton = {
+            TextButton(
+                { archiveId = null; viewModel.clearStatus() },
+                enabled = !busy
+            ) { Text("Cancelar") }
+        }
     )
 }

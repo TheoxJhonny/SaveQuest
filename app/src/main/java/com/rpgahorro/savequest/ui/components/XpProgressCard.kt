@@ -24,16 +24,34 @@ fun XpProgressCard(level: Int, currentXp: Int, requiredXp: Int) {
         }
         previousLevel = level
     }
-    val tint by animateColorAsState(if (celebrate) SqTextPrimary else SqXp, tween(500), label = "Subida de nivel")
+    val tint by animateColorAsState(
+        if (celebrate) SqTextPrimary else SqXp,
+        tween(500),
+        label = "Subida de nivel"
+    )
     QuestPanel {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Box(Modifier.size(66.dp), contentAlignment = Alignment.Center) {
                 QuestIllustration(QuestArt.Shield, Modifier.fillMaxSize())
-                Text("$level", modifier = Modifier.padding(top = 10.dp), color = tint, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "$level",
+                    modifier = Modifier.padding(top = 10.dp),
+                    color = tint,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(if (celebrate) "¡NIVEL $level!" else "NIVEL $level", color = tint, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(
+                        if (celebrate) "¡NIVEL $level!" else "NIVEL $level",
+                        color = tint,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                     Text("$currentXp / $requiredXp XP", color = SqTextSecondary, fontSize = 11.sp)
                 }
                 QuestProgress(if (requiredXp > 0) currentXp.toFloat() / requiredXp else 0f, SqXp)

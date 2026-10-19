@@ -31,15 +31,16 @@ class MainActivity : FragmentActivity() {
     private var availability by mutableIntStateOf(BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE)
 
     private var credentialAvailable by mutableStateOf(false)
-    private val credentialResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val attempt = access.activeAttempt
-        if (attempt != null && access.credentialPending) {
-            if (result.resultCode == RESULT_OK) {
-                access.authenticated(attempt)
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) access.resumed()
-            } else access.failed(attempt, "Acceso cancelado. Tus registros siguen bloqueados.")
+    private val credentialResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val attempt = access.activeAttempt
+            if (attempt != null && access.credentialPending) {
+                if (result.resultCode == RESULT_OK) {
+                    access.authenticated(attempt)
+                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) access.resumed()
+                } else access.failed(attempt, "Acceso cancelado. Tus registros siguen bloqueados.")
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +49,9 @@ class MainActivity : FragmentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         access = ViewModelProvider(this)[AccessViewModel::class.java]
         // AndroidX conserva el diálogo durante una rotación; reconectar su callback.
-        access.activeAttempt?.let { if (!access.credentialPending || Build.VERSION.SDK_INT >= 30) prompt = createPrompt(it) }
+        access.activeAttempt?.let {
+            if (!access.credentialPending || Build.VERSION.SDK_INT >= 30) prompt = createPrompt(it)
+        }
         setContent {
             SaveQuestTheme {
                 if (access.unlocked) SaveQuestApp()
@@ -93,33 +96,41 @@ class MainActivity : FragmentActivity() {
         val attempt = access.begin() ?: return
         prompt = createPrompt(attempt)
         try {
-            prompt!!.authenticate(BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Desbloquear SaveQuest")
-                .setSubtitle("Confirma tu identidad para ver tus finanzas")
-                .setAllowedAuthenticators(BIOMETRIC_STRONG)
-                .setNegativeButtonText("Cancelar")
-                .build())
+            prompt!!.authenticate(
+                BiometricPrompt.PromptInfo.Builder()
+                    .setTitle("Desbloquear SaveQuest")
+                    .setSubtitle("Confirma tu identidad para ver tus finanzas")
+                    .setAllowedAuthenticators(BIOMETRIC_STRONG)
+                    .setNegativeButtonText("Cancelar")
+                    .build()
+            )
         } catch (_: RuntimeException) {
             access.failed(attempt, "No se pudo iniciar la autenticación. Inténtalo nuevamente.")
         }
     }
 
-    private fun createPrompt(attempt: Long) = BiometricPrompt(this, ContextCompat.getMainExecutor(this),
+    private fun createPrompt(attempt: Long) = BiometricPrompt(
+        this, ContextCompat.getMainExecutor(this),
         object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 if (access.credentialPending) {
                     access.authenticated(attempt)
                     if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) access.resumed()
-                } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) access.authenticated(attempt)
+                } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) access.authenticated(
+                    attempt
+                )
                 else access.lock()
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                access.failed(attempt, when (errorCode) {
-                    BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_USER_CANCELED,
-                    BiometricPrompt.ERROR_CANCELED -> "Acceso cancelado. Tus registros siguen bloqueados."
-                    else -> errString.toString()
-                })
+                access.failed(
+                    attempt, when (errorCode) {
+                        BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_USER_CANCELED,
+                        BiometricPrompt.ERROR_CANCELED -> "Acceso cancelado. Tus registros siguen bloqueados."
+
+                        else -> errString.toString()
+                    }
+                )
             }
         })
 
@@ -130,11 +141,13 @@ class MainActivity : FragmentActivity() {
         try {
             if (Build.VERSION.SDK_INT >= 30) {
                 prompt = createPrompt(attempt)
-                prompt!!.authenticate(BiometricPrompt.PromptInfo.Builder()
-                    .setTitle("Desbloquear SaveQuest")
-                    .setSubtitle("Usa el PIN, patrón o contraseña de tu teléfono")
-                    .setAllowedAuthenticators(DEVICE_CREDENTIAL)
-                    .build())
+                prompt!!.authenticate(
+                    BiometricPrompt.PromptInfo.Builder()
+                        .setTitle("Desbloquear SaveQuest")
+                        .setSubtitle("Usa el PIN, patrón o contraseña de tu teléfono")
+                        .setAllowedAuthenticators(DEVICE_CREDENTIAL)
+                        .build()
+                )
             } else launchLegacyCredential(attempt)
         } catch (_: RuntimeException) {
             access.failed(attempt, "No se pudo abrir el bloqueo de Android. Inténtalo nuevamente.")
@@ -144,7 +157,10 @@ class MainActivity : FragmentActivity() {
     @Suppress("DEPRECATION") // DEVICE_CREDENTIAL no está soportado por BiometricPrompt antes de API 30.
     private fun launchLegacyCredential(attempt: Long) {
         val intent = getSystemService(KeyguardManager::class.java)
-            .createConfirmDeviceCredentialIntent("Desbloquear SaveQuest", "Confirma el bloqueo de tu teléfono")
+            .createConfirmDeviceCredentialIntent(
+                "Desbloquear SaveQuest",
+                "Confirma el bloqueo de tu teléfono"
+            )
         if (intent != null) credentialResult.launch(intent)
         else access.failed(attempt, "Configura primero el bloqueo de pantalla del teléfono.")
     }
@@ -156,7 +172,10 @@ class MainActivity : FragmentActivity() {
 
     private fun openEnrollment() {
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED, BIOMETRIC_STRONG)
+            Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(
+                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                BIOMETRIC_STRONG
+            )
         } else Intent(Settings.ACTION_SECURITY_SETTINGS)
         if (intent.resolveActivity(packageManager) != null) startActivity(intent)
     }

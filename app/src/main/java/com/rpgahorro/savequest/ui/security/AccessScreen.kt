@@ -14,11 +14,28 @@ import com.rpgahorro.savequest.ui.components.*
 import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
-fun AccessScreen(message: String, busy: Boolean, canAuthenticate: Boolean, canEnroll: Boolean,
-                 onUnlock: () -> Unit, onConfigure: () -> Unit, onRetry: () -> Unit, canUsePin: Boolean, onPin: () -> Unit, onConfigurePin: () -> Unit) {
+fun AccessScreen(
+    message: String,
+    busy: Boolean,
+    canAuthenticate: Boolean,
+    canEnroll: Boolean,
+    onUnlock: () -> Unit,
+    onConfigure: () -> Unit,
+    onRetry: () -> Unit,
+    canUsePin: Boolean,
+    onPin: () -> Unit,
+    onConfigurePin: () -> Unit
+) {
     Surface(color = SqBackground) {
-        Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp),
-            verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             QuestIllustration(QuestArt.Crystal, Modifier.size(80.dp))
             QuestLabel("SAVEQUEST")
             Spacer(Modifier.height(24.dp))
@@ -26,15 +43,40 @@ fun AccessScreen(message: String, busy: Boolean, canAuthenticate: Boolean, canEn
                 Icon(Icons.Outlined.Fingerprint, null, Modifier.size(42.dp), tint = SqPrimarySoft)
                 Text("Tu aventura, protegida", style = MaterialTheme.typography.headlineMedium)
                 Text(message, color = SqTextSecondary)
-                QuestButton(if (busy) "Esperando autenticación…" else "Usar biometría", onUnlock, canAuthenticate && !busy)
-                OutlinedButton(onPin, enabled = canUsePin && !busy, modifier = Modifier.fillMaxWidth()) { Text("Entrar con PIN del teléfono") }
-                Text("Android verifica tu PIN, patrón o contraseña. SaveQuest no lo almacena.", color = SqTextSecondary, style = MaterialTheme.typography.bodySmall)
-                if (!canUsePin) TextButton(onConfigurePin, enabled = !busy) { Text("Configurar bloqueo del teléfono") }
-                if (canEnroll) TextButton(onConfigure, enabled = !busy) { Text("Configurar biometría") }
-                if (!canAuthenticate) TextButton(onRetry, enabled = !busy) { Text("Comprobar nuevamente") }
+                QuestButton(
+                    if (busy) "Esperando autenticación…" else "Usar biometría",
+                    onUnlock,
+                    canAuthenticate && !busy
+                )
+                OutlinedButton(
+                    onPin,
+                    enabled = canUsePin && !busy,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Entrar con PIN del teléfono") }
+                Text(
+                    "Android verifica tu PIN, patrón o contraseña. SaveQuest no lo almacena.",
+                    color = SqTextSecondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                if (!canUsePin) TextButton(
+                    onConfigurePin,
+                    enabled = !busy
+                ) { Text("Configurar bloqueo del teléfono") }
+                if (canEnroll) TextButton(
+                    onConfigure,
+                    enabled = !busy
+                ) { Text("Configurar biometría") }
+                if (!canAuthenticate) TextButton(
+                    onRetry,
+                    enabled = !busy
+                ) { Text("Comprobar nuevamente") }
             }
             Spacer(Modifier.height(16.dp))
-            Text("Tus registros permanecen en este dispositivo.", color = SqTextSecondary, style = MaterialTheme.typography.bodySmall)
+            Text(
+                "Tus registros permanecen en este dispositivo.",
+                color = SqTextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

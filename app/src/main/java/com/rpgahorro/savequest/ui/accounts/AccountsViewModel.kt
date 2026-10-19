@@ -14,7 +14,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class AccountsViewModel(private val repository: AccountRepository) : ViewModel() {
-    val accounts = repository.accounts.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val accounts = repository.accounts.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
     var saving by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)
@@ -22,7 +26,11 @@ class AccountsViewModel(private val repository: AccountRepository) : ViewModel()
     var created by mutableStateOf(false)
         private set
 
-    fun clearStatus() { if (!saving) { error = null; created = false } }
+    fun clearStatus() {
+        if (!saving) {
+            error = null; created = false
+        }
+    }
 
     fun create(name: String) {
         if (saving || created) return
@@ -40,7 +48,9 @@ class AccountsViewModel(private val repository: AccountRepository) : ViewModel()
                 error = e.message
             } catch (_: Exception) {
                 error = "No se pudo crear la cuenta. Inténtalo nuevamente."
-            } finally { saving = false }
+            } finally {
+                saving = false
+            }
         }
     }
 

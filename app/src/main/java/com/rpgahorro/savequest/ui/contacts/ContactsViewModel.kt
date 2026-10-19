@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 class ContactsViewModel(private val repository: ContactRepository) : ViewModel() {
     var loadError by mutableStateOf<String?>(null)
         private set
-    val contacts = repository.contacts.catch { loadError = "No se pudieron cargar tus contactos. Vuelve a abrir esta pantalla." }
+    val contacts = repository.contacts.catch {
+        loadError = "No se pudieron cargar tus contactos. Vuelve a abrir esta pantalla."
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null as List<ContactEntity>?)
     var saving by mutableStateOf(false)
         private set
@@ -22,8 +24,15 @@ class ContactsViewModel(private val repository: ContactRepository) : ViewModel()
     var saved by mutableStateOf(false)
         private set
 
-    fun clearStatus() { if (!saving) { error = null; saved = false } }
-    fun save(id: Long?, name: String, phone: String, notes: String) = change { repository.save(id, name, phone, notes) }
+    fun clearStatus() {
+        if (!saving) {
+            error = null; saved = false
+        }
+    }
+
+    fun save(id: Long?, name: String, phone: String, notes: String) =
+        change { repository.save(id, name, phone, notes) }
+
     fun archive(id: Long, archived: Boolean) = change { repository.archive(id, archived) }
 
     private fun change(action: suspend () -> Unit) {
@@ -31,11 +40,17 @@ class ContactsViewModel(private val repository: ContactRepository) : ViewModel()
         saving = true
         error = null
         viewModelScope.launch {
-            try { action(); saved = true }
-            catch (e: CancellationException) { throw e }
-            catch (e: IllegalArgumentException) { error = e.message }
-            catch (_: Exception) { error = "No se pudo guardar el contacto. Inténtalo nuevamente." }
-            finally { saving = false }
+            try {
+                action(); saved = true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalArgumentException) {
+                error = e.message
+            } catch (_: Exception) {
+                error = "No se pudo guardar el contacto. Inténtalo nuevamente."
+            } finally {
+                saving = false
+            }
         }
     }
 
