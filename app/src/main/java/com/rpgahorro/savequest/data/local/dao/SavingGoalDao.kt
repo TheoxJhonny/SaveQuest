@@ -15,8 +15,7 @@ abstract class SavingGoalDao {
     @Query("SELECT * FROM saving_goals ORDER BY createdAt DESC, id DESC")
     abstract fun observeGoals(): Flow<List<SavingGoalWithContributions>>
 
-    @Insert
-    protected abstract suspend fun insertGoal(goal: SavingGoalEntity): Long
+    @Insert protected abstract suspend fun insertGoal(goal: SavingGoalEntity): Long
 
     @Insert
     protected abstract suspend fun insertContribution(contribution: GoalContributionEntity): Long
@@ -27,7 +26,8 @@ abstract class SavingGoalDao {
     @Query("SELECT COALESCE(SUM(amount), 0) FROM goal_contributions WHERE goalId = :goalId")
     protected abstract suspend fun savedAmount(goalId: Long): Long
 
-    @Query("""
+    @Query(
+        """
         SELECT COALESCE(SUM(CASE
             WHEN type = 'INCOME' THEN amount
             WHEN type = 'EXPENSE' THEN -amount
@@ -35,8 +35,24 @@ abstract class SavingGoalDao {
             - (SELECT COALESCE(SUM(cashOutflow), 0) FROM shared_expenses WHERE accountId = :accountId)
             - (SELECT COALESCE(SUM(amount), 0) FROM goal_contributions WHERE accountId = :accountId)
         FROM transactions WHERE accountId = :accountId
-    """)
+    """
+    )
     protected abstract suspend fun availableAmount(accountId: Long): Long
+
+    @Query("DELETE FROM goal_contributions WHERE goalId = :goalId")
+    protected abstract suspend fun deleteContributions(goalId: Long)
+
+    @Query("DELETE FROM saving_goals WHERE id = :goalId")
+    protected abstract suspend fun deleteGoalRow(goalId: Long): Int
+
+    // Liberar reservas no modifica movimientos ni crea un ingreso. Ambas eliminaciones son
+    // atómicas.
+    @Transaction
+    open suspend fun deleteGoal(goalId: Long) {
+        requireNotNull(findGoal(goalId)) { "La meta ya no existe." }
+        deleteContributions(goalId)
+        check(deleteGoalRow(goalId) == 1)
+    }
 
     suspend fun createGoal(name: String, targetAmount: Long): Long {
         require(name.isNotBlank()) { "Escribe un nombre para la meta." }
@@ -54,6 +70,8 @@ abstract class SavingGoalDao {
         }
         require(amount <= availableAmount(accountId)) { "No tienes suficiente dinero disponible." }
         // Reservar dinero no crea un gasto ni reduce el patrimonio.
-        return insertContribution(GoalContributionEntity(goalId = goalId, amount = amount, accountId = accountId))
+        return insertContribution(
+            GoalContributionEntity(goalId = goalId, amount = amount, accountId = accountId)
+        )
     }
 }

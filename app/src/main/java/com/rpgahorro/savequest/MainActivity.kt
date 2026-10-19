@@ -1,21 +1,21 @@
 package com.rpgahorro.savequest
 
-import android.content.Intent
 import android.app.KeyguardManager
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
-import androidx.compose.runtime.mutableStateOf
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -53,20 +53,22 @@ class MainActivity : FragmentActivity() {
             if (!access.credentialPending || Build.VERSION.SDK_INT >= 30) prompt = createPrompt(it)
         }
         setContent {
+            val phoneContacts = com.rpgahorro.savequest.ui.contacts.rememberPhoneContactPicker()
             SaveQuestTheme {
-                if (access.unlocked) SaveQuestApp()
-                else AccessScreen(
-                    message = access.message ?: availabilityMessage(),
-                    busy = access.activeAttempt != null,
-                    canAuthenticate = availability == BiometricManager.BIOMETRIC_SUCCESS,
-                    canEnroll = availability == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
-                    onUnlock = ::authenticate,
-                    onConfigure = ::openEnrollment,
-                    onRetry = ::refreshAvailability,
-                    canUsePin = credentialAvailable,
-                    onPin = ::authenticateCredential,
-                    onConfigurePin = { openSecuritySettings() }
-                )
+                if (access.unlocked) SaveQuestApp(phoneContacts)
+                else
+                    AccessScreen(
+                        message = access.message ?: availabilityMessage(),
+                        busy = access.activeAttempt != null,
+                        canAuthenticate = availability == BiometricManager.BIOMETRIC_SUCCESS,
+                        canEnroll = availability == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
+                        onUnlock = ::authenticate,
+                        onConfigure = ::openEnrollment,
+                        onRetry = ::refreshAvailability,
+                        canUsePin = credentialAvailable,
+                        onPin = ::authenticateCredential,
+                        onConfigurePin = { openSecuritySettings() },
+                    )
             }
         }
     }
@@ -109,30 +111,38 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun createPrompt(attempt: Long) = BiometricPrompt(
-        this, ContextCompat.getMainExecutor(this),
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                if (access.credentialPending) {
-                    access.authenticated(attempt)
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) access.resumed()
-                } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) access.authenticated(
-                    attempt
-                )
-                else access.lock()
-            }
+    private fun createPrompt(attempt: Long) =
+        BiometricPrompt(
+            this,
+            ContextCompat.getMainExecutor(this),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(
+                    result: BiometricPrompt.AuthenticationResult
+                ) {
+                    if (access.credentialPending) {
+                        access.authenticated(attempt)
+                        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+                            access.resumed()
+                    } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+                        access.authenticated(attempt)
+                    else access.lock()
+                }
 
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                access.failed(
-                    attempt, when (errorCode) {
-                        BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_USER_CANCELED,
-                        BiometricPrompt.ERROR_CANCELED -> "Acceso cancelado. Tus registros siguen bloqueados."
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    access.failed(
+                        attempt,
+                        when (errorCode) {
+                            BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                            BiometricPrompt.ERROR_USER_CANCELED,
+                            BiometricPrompt.ERROR_CANCELED ->
+                                "Acceso cancelado. Tus registros siguen bloqueados."
 
-                        else -> errString.toString()
-                    }
-                )
-            }
-        })
+                            else -> errString.toString()
+                        },
+                    )
+                }
+            },
+        )
 
     private fun authenticateCredential() {
         refreshAvailability()
@@ -154,13 +164,16 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    @Suppress("DEPRECATION") // DEVICE_CREDENTIAL no está soportado por BiometricPrompt antes de API 30.
+    @Suppress(
+        "DEPRECATION"
+    ) // DEVICE_CREDENTIAL no está soportado por BiometricPrompt antes de API 30.
     private fun launchLegacyCredential(attempt: Long) {
-        val intent = getSystemService(KeyguardManager::class.java)
-            .createConfirmDeviceCredentialIntent(
-                "Desbloquear SaveQuest",
-                "Confirma el bloqueo de tu teléfono"
-            )
+        val intent =
+            getSystemService(KeyguardManager::class.java)
+                .createConfirmDeviceCredentialIntent(
+                    "Desbloquear SaveQuest",
+                    "Confirma el bloqueo de tu teléfono",
+                )
         if (intent != null) credentialResult.launch(intent)
         else access.failed(attempt, "Configura primero el bloqueo de pantalla del teléfono.")
     }
@@ -171,19 +184,22 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun openEnrollment() {
-        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(
-                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                BIOMETRIC_STRONG
-            )
-        } else Intent(Settings.ACTION_SECURITY_SETTINGS)
+        val intent =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+                    .putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED, BIOMETRIC_STRONG)
+            } else Intent(Settings.ACTION_SECURITY_SETTINGS)
         if (intent.resolveActivity(packageManager) != null) startActivity(intent)
     }
 
-    private fun availabilityMessage(): String = when (availability) {
-        BiometricManager.BIOMETRIC_SUCCESS -> "Usa la biometría de tu dispositivo para acceder."
-        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> "Configura una huella o biometría compatible en los ajustes del dispositivo."
-        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> "Este dispositivo no dispone de biometría compatible. Puedes usar el bloqueo del teléfono."
-        else -> "La biometría no está disponible en este momento. Comprueba los ajustes del dispositivo e inténtalo nuevamente."
-    }
+    private fun availabilityMessage(): String =
+        when (availability) {
+            BiometricManager.BIOMETRIC_SUCCESS -> "Usa la biometría de tu dispositivo para acceder."
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
+                "Configura una huella o biometría compatible en los ajustes del dispositivo."
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE ->
+                "Este dispositivo no dispone de biometría compatible. Puedes usar el bloqueo del teléfono."
+            else ->
+                "La biometría no está disponible en este momento. Comprueba los ajustes del dispositivo e inténtalo nuevamente."
+        }
 }

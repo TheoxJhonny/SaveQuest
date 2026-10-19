@@ -42,9 +42,16 @@ import com.rpgahorro.savequest.ui.transactions.TransactionViewModelFactory
 import com.rpgahorro.savequest.ui.transactions.TransactionsScreen
 
 @Composable
-fun SaveQuestApp() {
+fun SaveQuestApp(
+    phoneContacts: com.rpgahorro.savequest.ui.contacts.PhoneContactPickerState? = null
+) {
 
     val navController = rememberNavController()
+    androidx.compose.runtime.LaunchedEffect(phoneContacts?.draft, phoneContacts?.error) {
+        if (phoneContacts?.draft != null || phoneContacts?.error != null) {
+            navController.navigate(SaveQuestDestination.Contacts.route) { launchSingleTop = true }
+        }
+    }
 
     var showAddMovementSheet by remember { mutableStateOf(false) }
 
@@ -227,6 +234,7 @@ fun SaveQuestApp() {
                 com.rpgahorro.savequest.ui.contacts.ContactsScreen(
                     contactsViewModel,
                     { navController.popBackStack() },
+                    phoneContacts = phoneContacts,
                 )
             }
 

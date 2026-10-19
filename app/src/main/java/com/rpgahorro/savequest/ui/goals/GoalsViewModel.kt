@@ -14,17 +14,19 @@ import kotlinx.coroutines.launch
 
 class GoalsViewModel(
     private val repository: SavingGoalRepository,
-    accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository
+    accountRepository: com.rpgahorro.savequest.data.repository.AccountRepository,
 ) : ViewModel() {
-    val accounts = accountRepository.accounts.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        emptyList()
-    )
+    val accounts =
+        accountRepository.accounts.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList(),
+        )
     val goals =
         repository.goals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     var saving by mutableStateOf(false)
         private set
+
     var error by mutableStateOf<String?>(null)
         private set
 
@@ -32,19 +34,22 @@ class GoalsViewModel(
         error = null
     }
 
-    fun create(name: String, amount: String, onSuccess: () -> Unit) = save(onSuccess) {
-        repository.createGoal(name, parseAmount(amount))
-    }
+    fun create(name: String, amount: String, onSuccess: () -> Unit) =
+        save(onSuccess) { repository.createGoal(name, parseAmount(amount)) }
 
     fun contribute(goalId: Long, amount: String, accountId: Long, onSuccess: () -> Unit) =
-        save(onSuccess) {
-            repository.contribute(goalId, parseAmount(amount), accountId)
-        }
+        save(onSuccess) { repository.contribute(goalId, parseAmount(amount), accountId) }
+
+    fun delete(goalId: Long, onSuccess: () -> Unit) =
+        save(onSuccess) { repository.deleteGoal(goalId) }
 
     private fun parseAmount(text: String): Long {
-        require(text.isNotEmpty() && text.all { it in '0'..'9' }) { "Escribe un monto en pesos, sin puntos ni comas." }
-        return requireNotNull(
-            text.toLongOrNull()?.takeIf { it > 0 }) { "Escribe un monto válido mayor que cero." }
+        require(text.isNotEmpty() && text.all { it in '0'..'9' }) {
+            "Escribe un monto en pesos, sin puntos ni comas."
+        }
+        return requireNotNull(text.toLongOrNull()?.takeIf { it > 0 }) {
+            "Escribe un monto válido mayor que cero."
+        }
     }
 
     private fun save(onSuccess: () -> Unit, operation: suspend () -> Unit) {
@@ -69,7 +74,7 @@ class GoalsViewModel(
 
     class Factory(
         private val repository: SavingGoalRepository,
-        private val accounts: com.rpgahorro.savequest.data.repository.AccountRepository
+        private val accounts: com.rpgahorro.savequest.data.repository.AccountRepository,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
