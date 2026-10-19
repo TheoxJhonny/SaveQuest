@@ -11,11 +11,13 @@ object DatabaseDefaults : RoomDatabase.Callback() {
         try {
             db.execSQL("INSERT OR IGNORE INTO accounts (id, name, createdAt) VALUES (1, 'Cuenta principal', 0)")
             db.execSQL("INSERT OR IGNORE INTO user_progress (id, totalXp) VALUES (1, 0)")
-            db.execSQL("""
+            db.execSQL(
+                """
                 INSERT OR IGNORE INTO challenges
                 (id, title, description, target, progress, xpReward, completed, rewardClaimed)
                 VALUES ('track_3_transactions', 'Mantén el ritmo', 'Registra 3 movimientos', 3, 0, 100, 0, 0)
-            """.trimIndent())
+            """.trimIndent()
+            )
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()

@@ -12,7 +12,12 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["goalId"],
         onDelete = ForeignKey.RESTRICT
-    ), ForeignKey(entity = AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"], onDelete = ForeignKey.RESTRICT)],
+    ), ForeignKey(
+        entity = AccountEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["accountId"],
+        onDelete = ForeignKey.RESTRICT
+    )],
     indices = [Index("goalId"), Index("accountId")]
 )
 data class GoalContributionEntity(

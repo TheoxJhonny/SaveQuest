@@ -2,10 +2,22 @@ package com.rpgahorro.savequest.data.local.entity
 
 import androidx.room.*
 
-@Entity(tableName = "shared_expenses", foreignKeys = [
-    ForeignKey(entity = AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"], onDelete = ForeignKey.RESTRICT),
-    ForeignKey(entity = ContactEntity::class, parentColumns = ["id"], childColumns = ["payerContactId"], onDelete = ForeignKey.RESTRICT)
-], indices = [Index("accountId"), Index("payerContactId")])
+@Entity(
+    tableName = "shared_expenses", foreignKeys = [
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["accountId"],
+            onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = ContactEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["payerContactId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ], indices = [Index("accountId"), Index("payerContactId")]
+)
 data class SharedExpenseEntity(
     @PrimaryKey val id: String,
     val title: String,
@@ -17,16 +29,47 @@ data class SharedExpenseEntity(
     val cashOutflow: Long
 )
 
-@Entity(tableName = "shared_items", primaryKeys = ["expenseId", "position"], foreignKeys = [
-    ForeignKey(entity = SharedExpenseEntity::class, parentColumns = ["id"], childColumns = ["expenseId"], onDelete = ForeignKey.RESTRICT)
-])
-data class SharedItemEntity(val expenseId: String, val position: Int, val name: String, val quantity: Long, val unitPrice: Long)
+@Entity(
+    tableName = "shared_items", primaryKeys = ["expenseId", "position"], foreignKeys = [
+        ForeignKey(
+            entity = SharedExpenseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["expenseId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ]
+)
+data class SharedItemEntity(
+    val expenseId: String,
+    val position: Int,
+    val name: String,
+    val quantity: Long,
+    val unitPrice: Long
+)
 
-@Entity(tableName = "shared_shares", primaryKeys = ["expenseId", "participantId"], foreignKeys = [
-    ForeignKey(entity = SharedExpenseEntity::class, parentColumns = ["id"], childColumns = ["expenseId"], onDelete = ForeignKey.RESTRICT),
-    ForeignKey(entity = ContactEntity::class, parentColumns = ["id"], childColumns = ["contactId"], onDelete = ForeignKey.RESTRICT)
-], indices = [Index("contactId")])
-data class SharedShareEntity(val expenseId: String, val participantId: Long, val contactId: Long?, val name: String, val amount: Long)
+@Entity(
+    tableName = "shared_shares", primaryKeys = ["expenseId", "participantId"], foreignKeys = [
+        ForeignKey(
+            entity = SharedExpenseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["expenseId"],
+            onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = ContactEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["contactId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ], indices = [Index("contactId")]
+)
+data class SharedShareEntity(
+    val expenseId: String,
+    val participantId: Long,
+    val contactId: Long?,
+    val name: String,
+    val amount: Long
+)
 
 data class SharedExpenseDetails(
     @Embedded val expense: SharedExpenseEntity,

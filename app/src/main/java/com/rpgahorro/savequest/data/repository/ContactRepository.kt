@@ -13,9 +13,22 @@ class ContactRepository(private val dao: ContactDao) {
         require(cleanName.length in 1..80) { "El nombre debe tener entre 1 y 80 caracteres." }
         require(cleanPhone.length <= 30) { "El teléfono no puede superar los 30 caracteres." }
         require(cleanNotes.length <= 500) { "La nota no puede superar los 500 caracteres." }
-        return if (id == null) dao.insert(ContactEntity(name = cleanName, phone = cleanPhone, notes = cleanNotes))
+        return if (id == null) dao.insert(
+            ContactEntity(
+                name = cleanName,
+                phone = cleanPhone,
+                notes = cleanNotes
+            )
+        )
         else {
-            require(dao.updateDetails(id, cleanName, cleanPhone, cleanNotes) == 1) { "El contacto ya no existe." }
+            require(
+                dao.updateDetails(
+                    id,
+                    cleanName,
+                    cleanPhone,
+                    cleanNotes
+                ) == 1
+            ) { "El contacto ya no existe." }
             id
         }
     }
