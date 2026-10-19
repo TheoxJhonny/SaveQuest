@@ -12,8 +12,6 @@ import com.rpgahorro.savequest.data.repository.UserProgressRepository
 import com.rpgahorro.savequest.data.repository.ChallengeRepository
 
 
-
-
 private val MIGRATION_1_2 = object : Migration(1, 2) {
 
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -87,6 +85,9 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
 
 class SaveQuestApplication : Application() {
 
+    lateinit var sharedExpenseRepository: com.rpgahorro.savequest.data.repository.SharedExpenseRepository
+        private set
+
     lateinit var database: SaveQuestDatabase
         private set
 
@@ -123,7 +124,8 @@ class SaveQuestApplication : Application() {
                 MIGRATION_2_3,
                 MIGRATION_3_4,
                 com.rpgahorro.savequest.data.local.MIGRATION_4_5,
-                com.rpgahorro.savequest.data.local.MIGRATION_5_6
+                com.rpgahorro.savequest.data.local.MIGRATION_5_6,
+                com.rpgahorro.savequest.data.local.MIGRATION_6_7
             )
             .addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults)
             .build()
@@ -140,8 +142,12 @@ class SaveQuestApplication : Application() {
             database.userProgressDao()
         )
 
-        contactRepository = com.rpgahorro.savequest.data.repository.ContactRepository(database.contactDao())
-        accountRepository = com.rpgahorro.savequest.data.repository.AccountRepository(database.accountDao())
+        sharedExpenseRepository = com.rpgahorro.savequest.data.repository.SharedExpenseRepository(database)
+
+        contactRepository =
+            com.rpgahorro.savequest.data.repository.ContactRepository(database.contactDao())
+        accountRepository =
+            com.rpgahorro.savequest.data.repository.AccountRepository(database.accountDao())
         savingGoalRepository = SavingGoalRepository(database.savingGoalDao())
 
         challengeRepository = ChallengeRepository(

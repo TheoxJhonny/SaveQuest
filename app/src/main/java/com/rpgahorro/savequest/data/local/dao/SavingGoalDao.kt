@@ -32,6 +32,7 @@ abstract class SavingGoalDao {
             WHEN type = 'INCOME' THEN amount
             WHEN type = 'EXPENSE' THEN -amount
             ELSE 0 END), 0)
+            - (SELECT COALESCE(SUM(cashOutflow), 0) FROM shared_expenses WHERE accountId = :accountId)
             - (SELECT COALESCE(SUM(amount), 0) FROM goal_contributions WHERE accountId = :accountId)
         FROM transactions WHERE accountId = :accountId
     """)

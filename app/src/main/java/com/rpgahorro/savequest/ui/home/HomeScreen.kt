@@ -40,6 +40,9 @@ fun HomeScreen(uiState: HomeUiState, onGoalsClick: () -> Unit = {}, onContribute
                     FinancialValue("Disponible", money(uiState.available), SqSavings, Modifier.weight(1f))
                     FinancialValue("Reservado en metas", money(uiState.reserved), SqPrimarySoft, Modifier.weight(1f))
                 }
+                if (uiState.receivable > 0 || uiState.payable > 0) {
+                    Text("Por cobrar: ${money(uiState.receivable)} · Por pagar: ${money(uiState.payable)}", color = SqTextSecondary)
+                }
                 HorizontalDivider(color = SqSurfaceElevated)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     FinancialValue("↑ Ingresos", "+${money(uiState.totalIncome)}", SqSavings, Modifier.weight(1f))

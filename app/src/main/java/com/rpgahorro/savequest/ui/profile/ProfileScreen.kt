@@ -12,7 +12,7 @@ import com.rpgahorro.savequest.ui.home.HomeUiState
 import com.rpgahorro.savequest.ui.theme.*
 
 @Composable
-fun ProfileScreen(uiState: HomeUiState, onAccounts: () -> Unit, onContacts: () -> Unit) {
+fun ProfileScreen(uiState: HomeUiState, onAccounts: () -> Unit, onContacts: () -> Unit, onSharedExpenses: () -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         QuestLabel("TU AVENTURA")
         Text("Perfil", style = MaterialTheme.typography.headlineLarge, color = SqTextPrimary)
@@ -25,6 +25,7 @@ fun ProfileScreen(uiState: HomeUiState, onAccounts: () -> Unit, onContacts: () -
         }
         QuestButton("Mis cuentas", onAccounts)
         QuestButton("Contactos", onContacts)
+        QuestButton("Gastos compartidos", onSharedExpenses)
         Spacer(Modifier.height(80.dp))
     }
 }

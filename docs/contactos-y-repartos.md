@@ -1,3 +1,5 @@
+> Actualización del 18-10-2026: el registro de gastos compartidos ya está implementado en Room v7, con productos, reparto, historial y deudas iniciales integradas en cuentas e Inicio. Quedan abonos/liquidaciones y compras planificadas. Consulta `gastos-compartidos.md` para el estado actual. El contenido siguiente conserva la revisión de su etapa original.
+
 # SaveQuest: contactos y base de gastos compartidos
 
 ## Contactos

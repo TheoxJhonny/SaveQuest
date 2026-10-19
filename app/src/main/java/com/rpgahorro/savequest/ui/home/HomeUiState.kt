@@ -4,6 +4,8 @@ import com.rpgahorro.savequest.data.local.entity.TransactionEntity
 import com.rpgahorro.savequest.data.local.entity.ChallengeEntity
 
 data class HomeUiState(
+    val receivable: Long = 0,
+    val payable: Long = 0,
     val balance: Long = 0,
     val reserved: Long = 0,
     val available: Long = 0,

@@ -37,7 +37,8 @@ fun AddMovementSheet(
     onDismiss: () -> Unit,
     onExpenseClick: () -> Unit,
     onIncomeClick: () -> Unit,
-    onGoalContributionClick: () -> Unit
+    onGoalContributionClick: () -> Unit,
+    onSharedExpenseClick: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -77,6 +78,8 @@ fun AddMovementSheet(
                 onClick = onExpenseClick
             )
 
+            HorizontalDivider()
+            MovementOption("Gasto compartido", "Productos, participantes y deudas.", Icons.Outlined.RemoveCircle, SqPrimary, onSharedExpenseClick)
             HorizontalDivider()
 
             MovementOption(

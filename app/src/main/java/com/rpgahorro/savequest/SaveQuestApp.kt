@@ -75,8 +75,14 @@ fun SaveQuestApp() {
         )
     )
 
-    val goalsViewModel: GoalsViewModel = viewModel(factory = GoalsViewModel.Factory(application.savingGoalRepository, application.accountRepository))
-    val accountsViewModel: AccountsViewModel = viewModel(factory = AccountsViewModel.Factory(application.accountRepository))
+    val goalsViewModel: GoalsViewModel = viewModel(
+        factory = GoalsViewModel.Factory(
+            application.savingGoalRepository,
+            application.accountRepository
+        )
+    )
+    val accountsViewModel: AccountsViewModel =
+        viewModel(factory = AccountsViewModel.Factory(application.accountRepository))
     val accounts by accountsViewModel.accounts.collectAsState()
     var pendingGoalId by rememberSaveable { mutableStateOf<Long?>(null) }
 
@@ -85,7 +91,8 @@ fun SaveQuestApp() {
             application.transactionRepository,
             application.userProgressRepository,
             application.challengeRepository,
-            application.savingGoalRepository
+            application.savingGoalRepository,
+            application.sharedExpenseRepository
         )
     )
 
@@ -143,7 +150,6 @@ fun SaveQuestApp() {
         }
 
 
-
     ) { innerPadding ->
 
         NavHost(
@@ -156,10 +162,16 @@ fun SaveQuestApp() {
 
                 HomeScreen(
                     uiState = homeUiState,
-                    onGoalsClick = { navController.navigate(SaveQuestDestination.Goals.route) { launchSingleTop = true } },
+                    onGoalsClick = {
+                        navController.navigate(SaveQuestDestination.Goals.route) {
+                            launchSingleTop = true
+                        }
+                    },
                     onContribute = { id ->
                         pendingGoalId = id
-                        navController.navigate(SaveQuestDestination.Goals.route) { launchSingleTop = true }
+                        navController.navigate(SaveQuestDestination.Goals.route) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -172,7 +184,11 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Goals.route) {
-                GoalsScreen(goalsViewModel, homeUiState.available, pendingGoalId, { pendingGoalId = null })
+                GoalsScreen(
+                    goalsViewModel,
+                    homeUiState.available,
+                    pendingGoalId,
+                    { pendingGoalId = null })
             }
 
             composable(SaveQuestDestination.Map.route) {
@@ -180,15 +196,39 @@ fun SaveQuestApp() {
             }
 
             composable(SaveQuestDestination.Profile.route) {
-                ProfileScreen(homeUiState, { navController.navigate(SaveQuestDestination.Accounts.route) { launchSingleTop = true } }, { navController.navigate(SaveQuestDestination.Contacts.route) { launchSingleTop = true } })
+                ProfileScreen(
+                    homeUiState,
+                    {
+                        navController.navigate(SaveQuestDestination.Accounts.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    {
+                        navController.navigate(SaveQuestDestination.Contacts.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    { navController.navigate(SaveQuestDestination.SharedExpenses.route) { launchSingleTop = true } })
+            }
 
-
+            composable(SaveQuestDestination.SharedExpenses.route) {
+                val vm: com.rpgahorro.savequest.ui.shared.SharedExpensesViewModel = viewModel(
+                    factory = com.rpgahorro.savequest.ui.shared.SharedExpensesViewModel.Factory(
+                        application.sharedExpenseRepository, application.contactRepository, application.accountRepository))
+                com.rpgahorro.savequest.ui.shared.SharedExpensesScreen(vm, { navController.popBackStack() },
+                    { navController.navigate(SaveQuestDestination.Contacts.route) })
             }
 
             composable(SaveQuestDestination.Contacts.route) {
-                val contactsViewModel: com.rpgahorro.savequest.ui.contacts.ContactsViewModel = viewModel(
-                    factory = com.rpgahorro.savequest.ui.contacts.ContactsViewModel.Factory(application.contactRepository))
-                com.rpgahorro.savequest.ui.contacts.ContactsScreen(contactsViewModel, { navController.popBackStack() })
+                val contactsViewModel: com.rpgahorro.savequest.ui.contacts.ContactsViewModel =
+                    viewModel(
+                        factory = com.rpgahorro.savequest.ui.contacts.ContactsViewModel.Factory(
+                            application.contactRepository
+                        )
+                    )
+                com.rpgahorro.savequest.ui.contacts.ContactsScreen(
+                    contactsViewModel,
+                    { navController.popBackStack() })
             }
 
             composable(SaveQuestDestination.Accounts.route) {
@@ -207,7 +247,15 @@ fun SaveQuestApp() {
                         onBack = { transactionViewModel.clearStatus(); navController.popBackStack() },
                         onSaved = { transactionViewModel.clearStatus(); navController.popBackStack() },
                         onSave = { amount, category, description, accountId, latitude, longitude ->
-                            transactionViewModel.addTransaction(type, amount, category, description, accountId, latitude, longitude)
+                            transactionViewModel.addTransaction(
+                                type,
+                                amount,
+                                category,
+                                description,
+                                accountId,
+                                latitude,
+                                longitude
+                            )
                         }
                     )
                 }
@@ -239,6 +287,10 @@ fun SaveQuestApp() {
                 navController.navigate(
                     SaveQuestDestination.AddIncome.route
                 )
+            },
+            onSharedExpenseClick = {
+                showAddMovementSheet = false
+                navController.navigate(SaveQuestDestination.SharedExpenses.route) { launchSingleTop = true }
             },
             onGoalContributionClick = {
                 showAddMovementSheet = false

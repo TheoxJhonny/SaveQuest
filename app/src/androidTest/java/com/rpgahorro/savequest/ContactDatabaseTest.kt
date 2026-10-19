@@ -49,7 +49,7 @@ class ContactDatabaseTest {
             db.version = 5
         }
         val db = Room.databaseBuilder(context, SaveQuestDatabase::class.java, name)
-            .addMigrations(MIGRATION_5_6).addCallback(DatabaseDefaults).build()
+            .addMigrations(MIGRATION_5_6, com.rpgahorro.savequest.data.local.MIGRATION_6_7).addCallback(DatabaseDefaults).build()
         try {
             assertTrue(db.contactDao().observeAll().first().isEmpty())
             before.forEach { (table, expected) -> db.openHelper.readableDatabase.query("SELECT * FROM $table ORDER BY 1").use { assertEquals(table, expected, rows(it)) } }

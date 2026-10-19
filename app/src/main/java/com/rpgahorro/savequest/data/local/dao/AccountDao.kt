@@ -9,14 +9,19 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class AccountDao {
-    @Query("""
+    @Query(
+        """
         SELECT accounts.*,
             (SELECT COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount WHEN type = 'EXPENSE' THEN -amount ELSE 0 END), 0)
-                FROM transactions WHERE accountId = accounts.id) AS balance,
+                FROM transactions WHERE accountId = accounts.id) - (SELECT COALESCE(SUM(cashOutflow), 0) FROM shared_expenses WHERE accountId = accounts.id) AS balance,
             (SELECT COALESCE(SUM(amount), 0) FROM goal_contributions WHERE accountId = accounts.id) AS reserved
         FROM accounts ORDER BY id
-    """)
+    """
+    )
     abstract fun observeBalances(): Flow<List<AccountBalance>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM accounts WHERE id = :id)")
+    abstract suspend fun exists(id: Long): Boolean
 
     @Insert
     protected abstract suspend fun insert(account: AccountEntity): Long

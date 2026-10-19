@@ -14,15 +14,17 @@ class HomeViewModel(
     transactionRepository: TransactionRepository,
     userProgressRepository: UserProgressRepository,
     challengeRepository: ChallengeRepository,
-    savingGoalRepository: com.rpgahorro.savequest.data.repository.SavingGoalRepository
+    savingGoalRepository: com.rpgahorro.savequest.data.repository.SavingGoalRepository,
+    private val sharedExpenseRepository: com.rpgahorro.savequest.data.repository.SharedExpenseRepository
 ) : ViewModel() {
 
     val uiState = combine(
         transactionRepository.transactions,
         userProgressRepository.progress,
         challengeRepository.challenges,
-        savingGoalRepository.goals
-    ) { transactions, progress, challenges, goals ->
+        savingGoalRepository.goals,
+        sharedExpenseRepository.expenses
+    ) { transactions, progress, challenges, goals, shared ->
 
         val totalIncome = transactions
             .filter {
@@ -40,6 +42,10 @@ class HomeViewModel(
                 it.amount
             }
 
+        val sharedExpenses = shared.sumOf { it.expense.ownExpense }
+        val cash = totalIncome - totalExpenses - shared.sumOf { it.expense.cashOutflow }
+        val receivable = shared.sumOf { it.receivable }
+        val payable = shared.sumOf { it.payable }
         val totalXp = progress?.totalXp ?: 0
 
         val level = (totalXp / 100) + 1
@@ -47,12 +53,14 @@ class HomeViewModel(
         val currentLevelXp = totalXp % 100
 
         HomeUiState(
-            balance = totalIncome - totalExpenses,
+            balance = cash + receivable - payable,
+            receivable = receivable,
+            payable = payable,
             reserved = goals.sumOf { it.savedAmount },
-            available = totalIncome - totalExpenses - goals.sumOf { it.savedAmount },
+            available = cash - goals.sumOf { it.savedAmount },
             goals = goals,
             totalIncome = totalIncome,
-            totalExpenses = totalExpenses,
+            totalExpenses = totalExpenses + sharedExpenses,
             recentTransactions = transactions.take(3),
 
             totalXp = totalXp,
