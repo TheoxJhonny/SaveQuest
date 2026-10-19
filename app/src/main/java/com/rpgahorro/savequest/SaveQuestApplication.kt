@@ -1,46 +1,49 @@
 package com.rpgahorro.savequest
 
-import com.rpgahorro.savequest.data.local.MIGRATION_3_4
-import com.rpgahorro.savequest.data.repository.SavingGoalRepository
 import android.app.Application
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.rpgahorro.savequest.data.local.MIGRATION_3_4
 import com.rpgahorro.savequest.data.local.SaveQuestDatabase
+import com.rpgahorro.savequest.data.repository.ChallengeRepository
+import com.rpgahorro.savequest.data.repository.SavingGoalRepository
 import com.rpgahorro.savequest.data.repository.TransactionRepository
 import com.rpgahorro.savequest.data.repository.UserProgressRepository
-import com.rpgahorro.savequest.data.repository.ChallengeRepository
 
+private val MIGRATION_1_2 =
+    object : Migration(1, 2) {
 
-private val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
 
-    override fun migrate(db: SupportSQLiteDatabase) {
-
-        db.execSQL(
-            """
+            db.execSQL(
+                """
             CREATE TABLE IF NOT EXISTS user_progress (
                 id INTEGER NOT NULL,
                 totalXp INTEGER NOT NULL,
                 PRIMARY KEY(id)
             )
-            """.trimIndent()
-        )
-
-        db.execSQL(
             """
+                    .trimIndent()
+            )
+
+            db.execSQL(
+                """
             INSERT OR IGNORE INTO user_progress (id, totalXp)
             VALUES (1, 0)
-            """.trimIndent()
-        )
-    }
-}
-
-private val MIGRATION_2_3 = object : Migration(2, 3) {
-
-    override fun migrate(db: SupportSQLiteDatabase) {
-
-        db.execSQL(
             """
+                    .trimIndent()
+            )
+        }
+    }
+
+private val MIGRATION_2_3 =
+    object : Migration(2, 3) {
+
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+            db.execSQL(
+                """
             CREATE TABLE IF NOT EXISTS challenges (
                 id TEXT NOT NULL,
                 title TEXT NOT NULL,
@@ -52,11 +55,12 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
                 rewardClaimed INTEGER NOT NULL,
                 PRIMARY KEY(id)
             )
-            """.trimIndent()
-        )
-
-        db.execSQL(
             """
+                    .trimIndent()
+            )
+
+            db.execSQL(
+                """
             INSERT OR IGNORE INTO challenges (
                 id,
                 title,
@@ -77,16 +81,19 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
                 0,
                 0
             )
-            """.trimIndent()
-        )
+            """
+                    .trimIndent()
+            )
+        }
     }
-}
-
 
 class SaveQuestApplication : Application() {
 
-    lateinit var sharedExpenseRepository: com.rpgahorro.savequest.data.repository.SharedExpenseRepository
+    lateinit var sharedExpenseRepository:
+        com.rpgahorro.savequest.data.repository.SharedExpenseRepository
         private set
+
+    val placeCatalog by lazy { com.rpgahorro.savequest.data.repository.PlaceCatalog(assets) }
 
     lateinit var database: SaveQuestDatabase
         private set
@@ -99,7 +106,6 @@ class SaveQuestApplication : Application() {
 
     lateinit var challengeRepository: ChallengeRepository
         private set
-
 
     lateinit var contactRepository: com.rpgahorro.savequest.data.repository.ContactRepository
         private set
@@ -114,35 +120,28 @@ class SaveQuestApplication : Application() {
         super.onCreate()
 
         // 1. Crear la base de datos Room
-        database = Room.databaseBuilder(
-            applicationContext,
-            SaveQuestDatabase::class.java,
-            "savequest.db"
-        )
-            .addMigrations(
-                MIGRATION_1_2,
-                MIGRATION_2_3,
-                MIGRATION_3_4,
-                com.rpgahorro.savequest.data.local.MIGRATION_4_5,
-                com.rpgahorro.savequest.data.local.MIGRATION_5_6,
-                com.rpgahorro.savequest.data.local.MIGRATION_6_7
-            )
-            .addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults)
-            .build()
-
+        database =
+            Room.databaseBuilder(applicationContext, SaveQuestDatabase::class.java, "savequest.db")
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    com.rpgahorro.savequest.data.local.MIGRATION_4_5,
+                    com.rpgahorro.savequest.data.local.MIGRATION_5_6,
+                    com.rpgahorro.savequest.data.local.MIGRATION_6_7,
+                    com.rpgahorro.savequest.data.local.MIGRATION_7_8,
+                )
+                .addCallback(com.rpgahorro.savequest.data.local.DatabaseDefaults)
+                .build()
 
         // 2. Crear el repositorio de movimientos
-        transactionRepository = TransactionRepository(
-            database
-        )
-
+        transactionRepository = TransactionRepository(database)
 
         // 3. Crear el repositorio de progreso / XP
-        userProgressRepository = UserProgressRepository(
-            database.userProgressDao()
-        )
+        userProgressRepository = UserProgressRepository(database.userProgressDao())
 
-        sharedExpenseRepository = com.rpgahorro.savequest.data.repository.SharedExpenseRepository(database)
+        sharedExpenseRepository =
+            com.rpgahorro.savequest.data.repository.SharedExpenseRepository(database)
 
         contactRepository =
             com.rpgahorro.savequest.data.repository.ContactRepository(database.contactDao())
@@ -150,8 +149,6 @@ class SaveQuestApplication : Application() {
             com.rpgahorro.savequest.data.repository.AccountRepository(database.accountDao())
         savingGoalRepository = SavingGoalRepository(database.savingGoalDao())
 
-        challengeRepository = ChallengeRepository(
-            database.challengeDao()
-        )
+        challengeRepository = ChallengeRepository(database.challengeDao())
     }
 }

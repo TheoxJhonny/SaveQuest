@@ -10,7 +10,11 @@ import com.rpgahorro.savequest.data.repository.TransactionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-data class TransactionSaveState(val saving: Boolean = false, val saved: Boolean = false, val error: String? = null)
+data class TransactionSaveState(
+    val saving: Boolean = false,
+    val saved: Boolean = false,
+    val error: String? = null,
+)
 
 class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
     val transactions = repository.transactions
@@ -21,19 +25,40 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
         if (!saveState.saving) saveState = TransactionSaveState()
     }
 
-    fun addTransaction(type: TransactionType, amount: Long, category: String, description: String, accountId: Long = 1, latitude: Double? = null, longitude: Double? = null) {
+    fun addTransaction(
+        type: TransactionType,
+        amount: Long,
+        category: String,
+        description: String,
+        accountId: Long = 1,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        place: com.rpgahorro.savequest.data.model.MapPlace? = null,
+    ) {
         if (saveState.saving || saveState.saved) return
         saveState = TransactionSaveState(saving = true)
         viewModelScope.launch {
             try {
-                repository.record(type, amount, category, description, accountId, latitude, longitude)
+                repository.record(
+                    type,
+                    amount,
+                    category,
+                    description,
+                    accountId,
+                    latitude,
+                    longitude,
+                    place,
+                )
                 saveState = TransactionSaveState(saved = true)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IllegalArgumentException) {
                 saveState = TransactionSaveState(error = e.message)
             } catch (_: Exception) {
-                saveState = TransactionSaveState(error = "No se pudo guardar el movimiento. Inténtalo nuevamente.")
+                saveState =
+                    TransactionSaveState(
+                        error = "No se pudo guardar el movimiento. Inténtalo nuevamente."
+                    )
             }
         }
     }

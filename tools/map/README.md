@@ -36,3 +36,7 @@ La precisión del sensor y el flujo de permiso se deben comprobar también en el
 - https://maplibre.org/maplibre-native/android/examples/geojson-guide/
 - https://maplibre.org/maplibre-native/android/examples/getting-started/
 - https://operations.osmfoundation.org/policies/tiles/
+
+## Comercios seleccionables (Room v8)
+
+El mapa ahora incluye un catálogo local de comercios, símbolos y nombres. Consulta docs/comercios-offline.md para el flujo, los límites, la migración y la regeneración con download_places.py y download_map_fonts.py. Los metadatos están en app/src/main/assets/map/places-source.json y fonts/source.json. No se requiere permiso INTERNET en la aplicación.

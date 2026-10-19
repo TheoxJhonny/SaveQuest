@@ -1,0 +1,11 @@
+{
+  "source": "https://overpass-api.de/api/interpreter",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "bbox": "-33.65,-70.85,-33.25,-70.45",
+  "downloadedAt": "2026-10-19T00:48:56.295485+00:00",
+  "osmTimestamp": "2026-10-19T00:47:20Z",
+  "count": 10809,
+  "query": "[out:json][timeout:180];(\nnwr[shop~\"^(supermarket|convenience|bakery|clothes|department_store|mall|hardware|books)$\"](-33.65,-70.85,-33.25,-70.45);\nnwr[amenity~\"^(restaurant|cafe|fast_food|pharmacy)$\"](-33.65,-70.85,-33.25,-70.45);\n);out center tags;",
+  "transform": "Named shops only; way/relation bounding-box centers; coordinates rounded to six decimals. No proximity deduplication of distinct OSM objects."
+}

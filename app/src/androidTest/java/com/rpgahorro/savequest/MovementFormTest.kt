@@ -13,16 +13,31 @@ import org.junit.Rule
 import org.junit.Test
 
 class MovementFormTest {
-    private val accounts = listOf(com.rpgahorro.savequest.data.local.entity.AccountBalance(com.rpgahorro.savequest.data.local.entity.AccountEntity(1, "Principal"), 0, 0))
+    private val accounts =
+        listOf(
+            com.rpgahorro.savequest.data.local.entity.AccountBalance(
+                com.rpgahorro.savequest.data.local.entity.AccountEntity(1, "Principal"),
+                0,
+                0,
+            )
+        )
     @get:Rule val compose = createComposeRule()
 
-    @Test fun formShowsErrorsAndPreservesInputAcrossRecreation() {
+    @Test
+    fun formShowsErrorsAndPreservesInputAcrossRecreation() {
         val restoration = StateRestorationTester(compose)
         var calls = 0
         restoration.setContent {
-            SaveQuestTheme { Surface {
-                AddTransactionScreen(TransactionType.EXPENSE, {}, { _, _, _, _, _, _ -> calls++ }, accounts = accounts)
-            } }
+            SaveQuestTheme {
+                Surface {
+                    AddTransactionScreen(
+                        TransactionType.EXPENSE,
+                        {},
+                        { _, _, _, _, _, _, _ -> calls++ },
+                        accounts = accounts,
+                    )
+                }
+            }
         }
         compose.onNodeWithText("Guardar movimiento").performScrollTo().performClick()
         compose.onNodeWithText("Ingresa un monto válido mayor que cero.").assertExists()
@@ -36,15 +51,27 @@ class MovementFormTest {
         assertEquals(1, calls)
     }
 
-    @Test fun savingDisablesSubmissionAndNavigationWaitsForSuccess() {
+    @Test
+    fun savingDisablesSubmissionAndNavigationWaitsForSuccess() {
         var state by mutableStateOf(TransactionSaveState())
         var calls = 0
         var success = 0
         compose.setContent {
-            SaveQuestTheme { Surface {
-                AddTransactionScreen(TransactionType.INCOME, {}, { _, _, _, _, _, _ -> calls++; state = TransactionSaveState(saving = true) },
-                    accounts = accounts, saveState = state, onSaved = { success++ })
-            } }
+            SaveQuestTheme {
+                Surface {
+                    AddTransactionScreen(
+                        TransactionType.INCOME,
+                        {},
+                        { _, _, _, _, _, _, _ ->
+                            calls++
+                            state = TransactionSaveState(saving = true)
+                        },
+                        accounts = accounts,
+                        saveState = state,
+                        onSaved = { success++ },
+                    )
+                }
+            }
         }
         compose.onNodeWithText("Monto en pesos").performTextInput("1000")
         compose.onNodeWithText("Categoría").performTextInput("Pago")
