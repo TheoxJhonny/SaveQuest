@@ -108,11 +108,13 @@ fun OfflineMap(
                 }
             }
         context.registerComponentCallbacks(memory)
+        val mapStarted = android.os.SystemClock.elapsedRealtime()
         var styleLoaded = false
         var readySent = false
         view.addOnDidFinishRenderingMapListener { fully ->
             if (fully && styleLoaded && !readySent && !disposed) {
                 readySent = true
+                android.util.Log.i("SaveQuestMap", "baseline_first_full_frame_ms=" + (android.os.SystemClock.elapsedRealtime() - mapStarted))
                 ready()
             }
         }
