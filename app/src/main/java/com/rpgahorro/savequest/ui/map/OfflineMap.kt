@@ -44,7 +44,9 @@ fun OfflineMap(
 ) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
-    val currentPoints by rememberUpdatedState(points)
+    val movementJson = remember(points) { pointsJson(points) }
+    val currentMovementJson by rememberUpdatedState(movementJson)
+    val appliedSources = remember { AppliedMapSources() }
     val businessClick by rememberUpdatedState(onBusiness)
     val longPress by rememberUpdatedState(onLongPress)
     var catalogJson by remember {
@@ -67,6 +69,7 @@ fun OfflineMap(
             MapView(context).apply { onCreate(null) }
         }
     DisposableEffect(view, owner) {
+        disposed = false
         var started = false
         var resumed = false
         fun sync() {
@@ -109,16 +112,7 @@ fun OfflineMap(
             }
         context.registerComponentCallbacks(memory)
         val mapStarted = android.os.SystemClock.elapsedRealtime()
-        var styleLoaded = false
-        var readySent = false
-        view.addOnDidFinishRenderingMapListener { fully ->
-            if (fully && styleLoaded && !readySent && !disposed) {
-                readySent = true
-                android.util.Log.i("SaveQuestMap", "baseline_first_full_frame_ms=" + (android.os.SystemClock.elapsedRealtime() - mapStarted))
-                ready()
-            }
-        }
-        view.addOnDidFailLoadingMapListener { if (!disposed) failed() }
+        var loader: HybridMapLoader? = null
         view.getMapAsync { controller ->
             if (!disposed) {
                 map = controller
@@ -172,23 +166,24 @@ fun OfflineMap(
                     }
                     true
                 }
-                controller.setStyle(Style.Builder().fromUri("asset://map/style.json")) { style ->
-                    if (!disposed) {
-                        style
-                            .getSourceAs<GeoJsonSource>("movements")
-                            ?.setGeoJson(pointsJson(currentPoints))
-                        com.rpgahorro.savequest.data.model.PlaceCategory.entries.forEach { category
-                            ->
+                loader = HybridMapLoader(context, view, controller,
+                    onStyle = { style ->
+                        appliedSources.reset()
+                        com.rpgahorro.savequest.data.model.PlaceCategory.entries.forEach { category ->
                             style.addImage("poi-${category.key}", placeIcon(category))
                         }
-                        style.getSourceAs<GeoJsonSource>("places")?.setGeoJson(currentCatalogJson)
-                        styleLoaded = true
-                    }
-                }
+                        appliedSources.movements(style, currentMovementJson)
+                        appliedSources.places(style, currentCatalogJson)
+                    },
+                    onReady = { ready() },
+                    onError = { failed() },
+                    started = mapStarted,
+                ).also { it.start() }
             }
         }
         onDispose {
             disposed = true
+            loader?.close()
             owner.lifecycle.removeObserver(observer)
             context.unregisterComponentCallbacks(memory)
             if (resumed) view.onPause()
@@ -197,10 +192,10 @@ fun OfflineMap(
             map = null
         }
     }
-    LaunchedEffect(points, map) {
+    LaunchedEffect(movementJson, map) {
         map?.getStyle {
             if (!disposed)
-                it.getSourceAs<GeoJsonSource>("movements")?.setGeoJson(pointsJson(currentPoints))
+                appliedSources.movements(it, currentMovementJson)
         }
     }
     LaunchedEffect(places) {
@@ -211,7 +206,7 @@ fun OfflineMap(
     }
     LaunchedEffect(catalogJson, map) {
         map?.getStyle {
-            if (!disposed) it.getSourceAs<GeoJsonSource>("places")?.setGeoJson(currentCatalogJson)
+            if (!disposed) appliedSources.places(it, currentCatalogJson)
         }
     }
     LaunchedEffect(focusedPlace, map) {
@@ -255,3 +250,18 @@ private fun pointsJson(points: List<MapPoint>): String =
             },
         )
         .toString()
+
+/** Compare serialized content as well as list equality to avoid redundant native GeoJSON parsing. */
+private class AppliedMapSources {
+    private var movements: String? = null
+    private var places: String? = null
+    fun reset() { movements = null; places = null }
+    fun movements(style: Style, json: String) {
+        if (movements == json) return
+        style.getSourceAs<GeoJsonSource>("movements")?.let { it.setGeoJson(json); movements = json }
+    }
+    fun places(style: Style, json: String) {
+        if (places == json) return
+        style.getSourceAs<GeoJsonSource>("places")?.let { it.setGeoJson(json); places = json }
+    }
+}

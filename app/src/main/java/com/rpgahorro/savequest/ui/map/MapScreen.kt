@@ -188,7 +188,7 @@ fun MapScreen(
                     selectedId = null
                     selectedPlaceJson = null
                 },
-                onReady = { loaded = true },
+                onReady = { loaded = true; error = false },
                 onError = { error = true },
             )
             if (!loaded || error)
@@ -395,7 +395,7 @@ fun MapAttribution() {
     val uri = LocalUriHandler.current
     Column {
         Text(
-            "Sin conexión · Zona urbana de Santiago · Datos de comercios pueden variar.",
+            "Mapa disponible sin conexión · Zona urbana de Santiago · Datos de comercios pueden variar.",
             style = MaterialTheme.typography.labelSmall,
             color = SqTextSecondary,
         )
