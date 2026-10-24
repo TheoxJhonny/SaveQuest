@@ -1,11 +1,11 @@
 {
   "version": 8,
-  "name": "SaveQuest Santiago offline",
+  "name": "SaveQuest Santiago hybrid",
   "sources": {
     "santiago": {
-      "type": "geojson",
-      "data": "asset://map/santiago.geojson",
-      "attribution": "Â© OpenStreetMap contributors"
+      "type": "vector",
+      "url": "pmtiles://asset://map/santiago.pmtiles",
+      "attribution": "© OpenStreetMap contributors · ODbL"
     },
     "movements": {
       "type": "geojson",
@@ -42,7 +42,8 @@
       "paint": {
         "fill-color": "#174B43",
         "fill-opacity": 0.8
-      }
+      },
+      "source-layer": "santiago"
     },
     {
       "id": "water",
@@ -56,7 +57,8 @@
       "paint": {
         "line-color": "#3A8AA3",
         "line-width": 3
-      }
+      },
+      "source-layer": "santiago"
     },
     {
       "id": "roads",
@@ -85,7 +87,8 @@
             ]
           ]
         }
-      }
+      },
+      "source-layer": "santiago"
     },
     {
       "id": "main-roads",
@@ -117,7 +120,8 @@
             ]
           ]
         }
-      }
+      },
+      "source-layer": "santiago"
     },
     {
       "id": "places-icons",

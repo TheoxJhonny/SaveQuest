@@ -33,6 +33,11 @@ android {
     }
     sourceSets.getByName("androidTest").assets.directories.add("schemas")
 
+    androidResources {
+        noCompress += "pmtiles"
+        ignoreAssetsPattern = "santiago.geojson"
+    }
+
     buildFeatures {
         compose = true
     }
