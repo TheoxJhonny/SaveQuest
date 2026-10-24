@@ -20,6 +20,13 @@
         "type": "FeatureCollection",
         "features": []
       }
+    },
+    "user-location": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
     }
   },
   "layers": [
@@ -124,6 +131,122 @@
       "source-layer": "santiago"
     },
     {
+      "id": "road-labels",
+      "type": "symbol",
+      "source": "santiago",
+      "source-layer": "santiago",
+      "minzoom": 15,
+      "filter": [
+        "all",
+        [
+          "==",
+          "kind",
+          "road"
+        ],
+        [
+          "!=",
+          "name",
+          ""
+        ],
+        [
+          "!in",
+          "class",
+          "motorway",
+          "trunk",
+          "primary",
+          "secondary"
+        ]
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "symbol-spacing": 250,
+        "text-field": "{name}",
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": {
+          "stops": [
+            [
+              15,
+              11
+            ],
+            [
+              18,
+              14
+            ]
+          ]
+        },
+        "text-max-angle": 35,
+        "text-padding": 4,
+        "text-keep-upright": true
+      },
+      "paint": {
+        "text-color": "#C8C3D8",
+        "text-halo-color": "#10131E",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "major-road-labels",
+      "type": "symbol",
+      "source": "santiago",
+      "source-layer": "santiago",
+      "minzoom": 11,
+      "filter": [
+        "all",
+        [
+          "==",
+          "kind",
+          "road"
+        ],
+        [
+          "!=",
+          "name",
+          ""
+        ],
+        [
+          "in",
+          "class",
+          "motorway",
+          "trunk",
+          "primary",
+          "secondary"
+        ]
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "symbol-spacing": 350,
+        "text-field": "{name}",
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": {
+          "stops": [
+            [
+              11,
+              11
+            ],
+            [
+              15,
+              13
+            ],
+            [
+              18,
+              15
+            ]
+          ]
+        },
+        "text-max-angle": 35,
+        "text-padding": 4,
+        "text-keep-upright": true
+      },
+      "paint": {
+        "text-color": "#E0D4FF",
+        "text-halo-color": "#10131E",
+        "text-halo-width": 1.5
+      }
+    },
+    {
       "id": "places-icons",
       "type": "symbol",
       "source": "places",
@@ -189,6 +312,31 @@
           "#FF7F92",
           "#43DBAE"
         ]
+      }
+    },
+    {
+      "id": "user-location-halo",
+      "type": "circle",
+      "source": "user-location",
+      "paint": {
+        "circle-radius": 14,
+        "circle-color": "#56E2B4",
+        "circle-opacity": 0.18,
+        "circle-stroke-color": "#56E2B4",
+        "circle-stroke-width": 1.5
+      }
+    },
+    {
+      "id": "user-location-hero",
+      "type": "symbol",
+      "source": "user-location",
+      "layout": {
+        "icon-image": "user-hero",
+        "icon-size": 0.65,
+        "icon-anchor": "bottom",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+        "icon-pitch-alignment": "viewport"
       }
     }
   ],
