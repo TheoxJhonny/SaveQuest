@@ -38,7 +38,7 @@ class PlaceMapUiTest {
         val loaded = AtomicBoolean(false)
         val selected = AtomicReference<List<String>>(emptyList())
         assertEquals(
-            PackageManager.PERMISSION_DENIED,
+            PackageManager.PERMISSION_GRANTED,
             context.checkSelfPermission(Manifest.permission.INTERNET),
         )
         compose.setContent {

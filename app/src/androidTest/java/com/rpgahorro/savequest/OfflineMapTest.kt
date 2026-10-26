@@ -24,12 +24,9 @@ class OfflineMapTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun bundledMapLoadsAndMarkerIsSelectableWithoutInternetPermission() {
+    fun bundledMapLoadsAndMarkerIsSelectable() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals(
-            PackageManager.PERMISSION_DENIED,
-            context.checkSelfPermission(Manifest.permission.INTERNET),
-        )
+        context.assets.open("map/santiago.pmtiles").use { assertEquals(80, it.read()) }
         val loaded = AtomicBoolean(false)
         val selected = AtomicLong(-1)
         compose.setContent {

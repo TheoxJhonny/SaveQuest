@@ -1,6 +1,14 @@
 package com.rpgahorro.savequest.ui.map
 
 import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
+import com.rpgahorro.savequest.ui.theme.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,7 +34,7 @@ data class MapPoint(
     val expense: Boolean = false,
 )
 
-/** Todas las fuentes del estilo son assets locales; no existe dependencia de una caché. */
+/** Mapa híbrido con posición del héroe y fuentes dinámicas independientes. */
 @Composable
 fun OfflineMap(
     points: List<MapPoint>,
@@ -44,7 +52,12 @@ fun OfflineMap(
 ) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
-    val currentPoints by rememberUpdatedState(points)
+    val (hero, locateHero) = rememberHeroLocation()
+    val heroJson = remember(hero.location) { heroPositionJson(hero.location) }
+    val currentHeroJson by rememberUpdatedState(heroJson)
+    val movementJson = remember(points) { pointsJson(points) }
+    val currentMovementJson by rememberUpdatedState(movementJson)
+    val appliedSources = remember { AppliedMapSources() }
     val businessClick by rememberUpdatedState(onBusiness)
     val longPress by rememberUpdatedState(onLongPress)
     var catalogJson by remember {
@@ -67,6 +80,7 @@ fun OfflineMap(
             MapView(context).apply { onCreate(null) }
         }
     DisposableEffect(view, owner) {
+        disposed = false
         var started = false
         var resumed = false
         fun sync() {
@@ -108,15 +122,8 @@ fun OfflineMap(
                 }
             }
         context.registerComponentCallbacks(memory)
-        var styleLoaded = false
-        var readySent = false
-        view.addOnDidFinishRenderingMapListener { fully ->
-            if (fully && styleLoaded && !readySent && !disposed) {
-                readySent = true
-                ready()
-            }
-        }
-        view.addOnDidFailLoadingMapListener { if (!disposed) failed() }
+        val mapStarted = android.os.SystemClock.elapsedRealtime()
+        var loader: HybridMapLoader? = null
         view.getMapAsync { controller ->
             if (!disposed) {
                 map = controller
@@ -170,23 +177,26 @@ fun OfflineMap(
                     }
                     true
                 }
-                controller.setStyle(Style.Builder().fromUri("asset://map/style.json")) { style ->
-                    if (!disposed) {
-                        style
-                            .getSourceAs<GeoJsonSource>("movements")
-                            ?.setGeoJson(pointsJson(currentPoints))
-                        com.rpgahorro.savequest.data.model.PlaceCategory.entries.forEach { category
-                            ->
+                loader = HybridMapLoader(context, view, controller,
+                    onStyle = { style ->
+                        appliedSources.reset()
+                        style.addImage("user-hero", heroLocationIcon())
+                        style.getSourceAs<GeoJsonSource>("user-location")?.setGeoJson(currentHeroJson)
+                        com.rpgahorro.savequest.data.model.PlaceCategory.entries.forEach { category ->
                             style.addImage("poi-${category.key}", placeIcon(category))
                         }
-                        style.getSourceAs<GeoJsonSource>("places")?.setGeoJson(currentCatalogJson)
-                        styleLoaded = true
-                    }
-                }
+                        appliedSources.movements(style, currentMovementJson)
+                        appliedSources.places(style, currentCatalogJson)
+                    },
+                    onReady = { ready() },
+                    onError = { failed() },
+                    started = mapStarted,
+                ).also { it.start() }
             }
         }
         onDispose {
             disposed = true
+            loader?.close()
             owner.lifecycle.removeObserver(observer)
             context.unregisterComponentCallbacks(memory)
             if (resumed) view.onPause()
@@ -195,10 +205,10 @@ fun OfflineMap(
             map = null
         }
     }
-    LaunchedEffect(points, map) {
+    LaunchedEffect(movementJson, map) {
         map?.getStyle {
             if (!disposed)
-                it.getSourceAs<GeoJsonSource>("movements")?.setGeoJson(pointsJson(currentPoints))
+                appliedSources.movements(it, currentMovementJson)
         }
     }
     LaunchedEffect(places) {
@@ -209,7 +219,7 @@ fun OfflineMap(
     }
     LaunchedEffect(catalogJson, map) {
         map?.getStyle {
-            if (!disposed) it.getSourceAs<GeoJsonSource>("places")?.setGeoJson(currentCatalogJson)
+            if (!disposed) appliedSources.places(it, currentCatalogJson)
         }
     }
     LaunchedEffect(focusedPlace, map) {
@@ -222,7 +232,40 @@ fun OfflineMap(
             )
         }
     }
-    AndroidView(factory = { view }, modifier = modifier)
+    LaunchedEffect(heroJson, map) {
+        map?.getStyle { style ->
+            if (!disposed) style.getSourceAs<GeoJsonSource>("user-location")?.setGeoJson(currentHeroJson)
+        }
+    }
+    LaunchedEffect(hero.centerRequest, map) {
+        val target = hero.centerTarget
+        if (target != null && isFreshHeroFix(target)) {
+            // Real coordinates must never be clamped to the Santiago coverage boundary.
+            if (target.latitude !in -33.65..-33.25 || target.longitude !in -70.85..-70.45)
+                map?.setLatLngBoundsForCameraTarget(null)
+            map?.animateCamera(org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(
+                LatLng(target.latitude, target.longitude), 16.5))
+        }
+    }
+    Box(modifier) {
+        AndroidView(factory = { view }, modifier = Modifier.fillMaxSize())
+        Column(Modifier.align(Alignment.BottomEnd).padding(12.dp),
+            horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            val outside = hero.location?.let { it.latitude !in -33.65..-33.25 || it.longitude !in -70.85..-70.45 } == true
+            val message = if (outside) "Tu posición está fuera de la cartografía local de Santiago." else hero.message
+            message?.let {
+                Surface(color = SqSurface, shape = MaterialTheme.shapes.small, modifier = Modifier.widthIn(max = 260.dp)) {
+                    Text(it, Modifier.padding(10.dp), color = SqTextPrimary, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            SmallFloatingActionButton(onClick = { if (!hero.locating) locateHero() },
+                containerColor = SqPrimary, contentColor = SqTextPrimary,
+                modifier = Modifier.size(48.dp).testTag("recenter-hero")) {
+                if (hero.locating) CircularProgressIndicator(Modifier.size(22.dp), color = SqTextPrimary, strokeWidth = 2.dp)
+                else Icon(Icons.Default.MyLocation, contentDescription = "Volver a mi ubicación")
+            }
+        }
+    }
 }
 
 private fun pointsJson(points: List<MapPoint>): String =
@@ -253,3 +296,26 @@ private fun pointsJson(points: List<MapPoint>): String =
             },
         )
         .toString()
+
+/** Compare serialized content as well as list equality to avoid redundant native GeoJSON parsing. */
+private class AppliedMapSources {
+    private var movements: String? = null
+    private var places: String? = null
+    fun reset() { movements = null; places = null }
+    fun movements(style: Style, json: String) {
+        if (movements == json) return
+        style.getSourceAs<GeoJsonSource>("movements")?.let { it.setGeoJson(json); movements = json }
+    }
+    fun places(style: Style, json: String) {
+        if (places == json) return
+        style.getSourceAs<GeoJsonSource>("places")?.let { it.setGeoJson(json); places = json }
+    }
+}
+
+private fun heroPositionJson(location: android.location.Location?): String =
+    JSONObject().put("type", "FeatureCollection").put("features", JSONArray().apply {
+        if (location != null) put(JSONObject().put("type", "Feature")
+            .put("properties", JSONObject().put("accuracy", location.accuracy.toDouble()))
+            .put("geometry", JSONObject().put("type", "Point").put("coordinates",
+                JSONArray().put(location.longitude).put(location.latitude))))
+    }).toString()

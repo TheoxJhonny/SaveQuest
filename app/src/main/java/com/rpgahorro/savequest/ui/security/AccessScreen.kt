@@ -36,8 +36,7 @@ fun AccessScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            QuestIllustration(QuestArt.Crystal, Modifier.size(80.dp))
-            QuestLabel("SAVEQUEST")
+            SaveQuestLogo(Modifier.widthIn(max = 280.dp).fillMaxWidth())
             Spacer(Modifier.height(24.dp))
             QuestPanel {
                 Icon(Icons.Outlined.Fingerprint, null, Modifier.size(42.dp), tint = SqPrimarySoft)

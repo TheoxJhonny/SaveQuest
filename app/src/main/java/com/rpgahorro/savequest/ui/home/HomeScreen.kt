@@ -28,19 +28,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                QuestIllustration(QuestArt.Crystal, Modifier.size(36.dp))
-                Text(
-                    "SAVEQUEST",
-                    color = SqPrimarySoft,
-                    fontSize = 18.sp,
-                    letterSpacing = 3.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+            SaveQuestLogo(Modifier.widthIn(max = 200.dp).fillMaxWidth())
             Spacer(Modifier.height(20.dp))
             Text(
                 when (LocalTime.now().hour) {
